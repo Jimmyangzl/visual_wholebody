@@ -44,12 +44,14 @@ from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.utils.helpers import class_to_dict
 from legged_gym.utils.terrain import Terrain, Terrain_Perlin
 from .b1z1_config import B1Z1RoughCfg
+from .b2z1_config import B2Z1RoughCfg
 
 import sys
 
 class ManipLoco(LeggedRobot):
     name = None
-    cfg: B1Z1RoughCfg
+    # cfg: B1Z1RoughCfg
+    cfg: B2Z1RoughCfg
 
     def __init__(self, cfg, *args, **kwargs):
         if cfg.env.observe_gait_commands:
@@ -488,6 +490,7 @@ class ManipLoco(LeggedRobot):
         # self.num_bodies = len(self.body_names)
         # self.num_dofs = len(self.dof_names)
         feet_names = [s for s in self.body_names if self.cfg.asset.foot_name in s]
+        print(self.body_names)
         penalized_contact_names = []
         for name in self.cfg.asset.penalize_contacts_on:
             body_names = [s for s in self.body_names if name in s]
