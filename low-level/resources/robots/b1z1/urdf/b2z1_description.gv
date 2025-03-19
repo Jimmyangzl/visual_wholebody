@@ -1,0 +1,146 @@
+digraph G {
+node [shape=box];
+"base" [label="base"];
+"link00" [label="link00"];
+"link01" [label="link01"];
+"link02" [label="link02"];
+"link03" [label="link03"];
+"link04" [label="link04"];
+"link05" [label="link05"];
+"link06" [label="link06"];
+"gripperStator" [label="gripperStator"];
+"ee_gripper_link" [label="ee_gripper_link"];
+"gripperMover" [label="gripperMover"];
+"floating_base_link" [label="floating_base_link"];
+"FL_hip" [label="FL_hip"];
+"FL_thigh" [label="FL_thigh"];
+"FL_calf" [label="FL_calf"];
+"FL_foot" [label="FL_foot"];
+"FL_calf_rotor" [label="FL_calf_rotor"];
+"FL_thigh_rotor" [label="FL_thigh_rotor"];
+"FL_hip_rotor" [label="FL_hip_rotor"];
+"FR_hip" [label="FR_hip"];
+"FR_thigh" [label="FR_thigh"];
+"FR_calf" [label="FR_calf"];
+"FR_foot" [label="FR_foot"];
+"FR_calf_rotor" [label="FR_calf_rotor"];
+"FR_thigh_rotor" [label="FR_thigh_rotor"];
+"FR_hip_rotor" [label="FR_hip_rotor"];
+"RL_hip" [label="RL_hip"];
+"RL_thigh" [label="RL_thigh"];
+"RL_calf" [label="RL_calf"];
+"RL_foot" [label="RL_foot"];
+"RL_calf_rotor" [label="RL_calf_rotor"];
+"RL_thigh_rotor" [label="RL_thigh_rotor"];
+"RL_hip_rotor" [label="RL_hip_rotor"];
+"RR_hip" [label="RR_hip"];
+"RR_thigh" [label="RR_thigh"];
+"RR_calf" [label="RR_calf"];
+"RR_foot" [label="RR_foot"];
+"RR_calf_rotor" [label="RR_calf_rotor"];
+"RR_thigh_rotor" [label="RR_thigh_rotor"];
+"RR_hip_rotor" [label="RR_hip_rotor"];
+"f_dc_link" [label="f_dc_link"];
+"head_Link" [label="head_Link"];
+"imu_link" [label="imu_link"];
+"f_oc_link" [label="f_oc_link"];
+"lidar_link" [label="lidar_link"];
+"r_oc_link" [label="r_oc_link"];
+"r_dc_link" [label="r_dc_link"];
+"tail_link" [label="tail_link"];
+node [shape=ellipse, color=blue, fontcolor=blue];
+"base" -> "base_static_joint" [label="xyz: 0.3 0 0.09 \nrpy: 0 -0 0"]
+"base_static_joint" -> "link00"
+"link00" -> "z1_waist" [label="xyz: 0 0 0.0585 \nrpy: 0 -0 0"]
+"z1_waist" -> "link01"
+"link01" -> "z1_shoulder" [label="xyz: 0 0 0.045 \nrpy: 0 -0 0"]
+"z1_shoulder" -> "link02"
+"link02" -> "z1_elbow" [label="xyz: -0.35 0 0 \nrpy: 0 -0 0"]
+"z1_elbow" -> "link03"
+"link03" -> "z1_wrist_angle" [label="xyz: 0.218 0 0.057 \nrpy: 0 -0 0"]
+"z1_wrist_angle" -> "link04"
+"link04" -> "z1_forearm_roll" [label="xyz: 0.07 0 0 \nrpy: 0 -0 0"]
+"z1_forearm_roll" -> "link05"
+"link05" -> "z1_wrist_rotate" [label="xyz: 0.0492 0 0 \nrpy: 0 -0 0"]
+"z1_wrist_rotate" -> "link06"
+"link06" -> "z1_gripperStator" [label="xyz: 0.051 0 0 \nrpy: 0 -0 0"]
+"z1_gripperStator" -> "gripperStator"
+"gripperStator" -> "ee_gripper" [label="xyz: 0.135 0 0 \nrpy: 0 -0 0"]
+"ee_gripper" -> "ee_gripper_link"
+"gripperStator" -> "z1_jointGripper" [label="xyz: 0.049 0 0 \nrpy: 0 -0 0"]
+"z1_jointGripper" -> "gripperMover"
+"base" -> "floating_base_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"floating_base_joint" -> "floating_base_link"
+"floating_base_link" -> "FL_hip_joint" [label="xyz: 0.3285 0.072 0 \nrpy: 0 -0 0"]
+"FL_hip_joint" -> "FL_hip"
+"FL_hip" -> "FL_thigh_joint" [label="xyz: 0 0.11973 0 \nrpy: 0 -0 0"]
+"FL_thigh_joint" -> "FL_thigh"
+"FL_thigh" -> "FL_calf_joint" [label="xyz: 0 -8.6984e-05 -0.35 \nrpy: 0 -0 0"]
+"FL_calf_joint" -> "FL_calf"
+"FL_calf" -> "FL_foot_joint" [label="xyz: 0 0 -0.35 \nrpy: 0 -0 0"]
+"FL_foot_joint" -> "FL_foot"
+"FL_thigh" -> "FL_calf_rotor_joint" [label="xyz: 0 -0.05788 0 \nrpy: 0 -0 0"]
+"FL_calf_rotor_joint" -> "FL_calf_rotor"
+"FL_hip" -> "FL_thigh_rotor_joint" [label="xyz: 0 -0.00798 0 \nrpy: 0 -0 0"]
+"FL_thigh_rotor_joint" -> "FL_thigh_rotor"
+"floating_base_link" -> "FL_hip_rotor_joint" [label="xyz: 0.20205 0.072 0 \nrpy: 0 -0 0"]
+"FL_hip_rotor_joint" -> "FL_hip_rotor"
+"floating_base_link" -> "FR_hip_joint" [label="xyz: 0.3285 -0.072 0 \nrpy: 0 -0 0"]
+"FR_hip_joint" -> "FR_hip"
+"FR_hip" -> "FR_thigh_joint" [label="xyz: 0 -0.11973 0 \nrpy: 0 -0 0"]
+"FR_thigh_joint" -> "FR_thigh"
+"FR_thigh" -> "FR_calf_joint" [label="xyz: 0 8.6986e-05 -0.35 \nrpy: 0 -0 0"]
+"FR_calf_joint" -> "FR_calf"
+"FR_calf" -> "FR_foot_joint" [label="xyz: 0 0 -0.35 \nrpy: 0 -0 0"]
+"FR_foot_joint" -> "FR_foot"
+"FR_thigh" -> "FR_calf_rotor_joint" [label="xyz: 0 0.05788 0 \nrpy: 0 -0 0"]
+"FR_calf_rotor_joint" -> "FR_calf_rotor"
+"FR_hip" -> "FR_thigh_rotor_joint" [label="xyz: 0 0.00798 0 \nrpy: 0 -0 0"]
+"FR_thigh_rotor_joint" -> "FR_thigh_rotor"
+"floating_base_link" -> "FR_hip_rotor_joint" [label="xyz: 0.20205 -0.072 0 \nrpy: 0 -0 0"]
+"FR_hip_rotor_joint" -> "FR_hip_rotor"
+"floating_base_link" -> "RL_hip_joint" [label="xyz: -0.3285 0.072 0 \nrpy: 0 -0 0"]
+"RL_hip_joint" -> "RL_hip"
+"RL_hip" -> "RL_thigh_joint" [label="xyz: 0 0.11973 0 \nrpy: 0 -0 0"]
+"RL_thigh_joint" -> "RL_thigh"
+"RL_thigh" -> "RL_calf_joint" [label="xyz: 0 -8.6984e-05 -0.35 \nrpy: 0 -0 0"]
+"RL_calf_joint" -> "RL_calf"
+"RL_calf" -> "RL_foot_joint" [label="xyz: 0 0 -0.35 \nrpy: 0 -0 0"]
+"RL_foot_joint" -> "RL_foot"
+"RL_thigh" -> "RL_calf_rotor_joint" [label="xyz: 0 -0.05788 0 \nrpy: 0 -0 0"]
+"RL_calf_rotor_joint" -> "RL_calf_rotor"
+"RL_hip" -> "RL_thigh_rotor_joint" [label="xyz: 0 -0.00798 0 \nrpy: 0 -0 0"]
+"RL_thigh_rotor_joint" -> "RL_thigh_rotor"
+"floating_base_link" -> "RL_hip_rotor_joint" [label="xyz: -0.20205 0.072 0 \nrpy: 0 -0 0"]
+"RL_hip_rotor_joint" -> "RL_hip_rotor"
+"floating_base_link" -> "RR_hip_joint" [label="xyz: -0.3285 -0.072 0 \nrpy: 0 -0 0"]
+"RR_hip_joint" -> "RR_hip"
+"RR_hip" -> "RR_thigh_joint" [label="xyz: 0 -0.11973 0 \nrpy: 0 -0 0"]
+"RR_thigh_joint" -> "RR_thigh"
+"RR_thigh" -> "RR_calf_joint" [label="xyz: 0 8.6986e-05 -0.35 \nrpy: 0 -0 0"]
+"RR_calf_joint" -> "RR_calf"
+"RR_calf" -> "RR_foot_joint" [label="xyz: 0 -8.6984e-05 -0.35 \nrpy: 0 -0 0"]
+"RR_foot_joint" -> "RR_foot"
+"RR_thigh" -> "RR_calf_rotor_joint" [label="xyz: 0 0.05788 0 \nrpy: 0 -0 0"]
+"RR_calf_rotor_joint" -> "RR_calf_rotor"
+"RR_hip" -> "RR_thigh_rotor_joint" [label="xyz: 0 0.00798 0 \nrpy: 0 -0 0"]
+"RR_thigh_rotor_joint" -> "RR_thigh_rotor"
+"floating_base_link" -> "RR_hip_rotor_joint" [label="xyz: -0.20205 -0.072 0 \nrpy: 0 -0 0"]
+"RR_hip_rotor_joint" -> "RR_hip_rotor"
+"floating_base_link" -> "f_dc_joint" [label="xyz: 0.41251 0.024997 0.04765 \nrpy: -2.3562 -0 -1.5708"]
+"f_dc_joint" -> "f_dc_link"
+"floating_base_link" -> "head_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"head_joint" -> "head_Link"
+"floating_base_link" -> "imu_joint" [label="xyz: 0 -0.02341 0.04927 \nrpy: 0 -0 0"]
+"imu_joint" -> "imu_link"
+"floating_base_link" -> "joint_f_oc" [label="xyz: 0.39079 0 -0.013433 \nrpy: -1.5708 -0 -1.5708"]
+"joint_f_oc" -> "f_oc_link"
+"floating_base_link" -> "joint_lidar" [label="xyz: 0.34218 0 0.17851 \nrpy: 0 -0 0"]
+"joint_lidar" -> "lidar_link"
+"floating_base_link" -> "joint_r_oc" [label="xyz: -0.38451 0 -0.023249 \nrpy: -1.5708 -0 1.5708"]
+"joint_r_oc" -> "r_oc_link"
+"floating_base_link" -> "r_dc_joint" [label="xyz: -0.4081 -0.025 0.024861 \nrpy: -2.3557 -0 1.5708"]
+"r_dc_joint" -> "r_dc_link"
+"floating_base_link" -> "tail_joint" [label="xyz: 0 0 0 \nrpy: 0 -0 0"]
+"tail_joint" -> "tail_link"
+}
