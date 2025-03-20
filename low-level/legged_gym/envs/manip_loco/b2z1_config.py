@@ -118,7 +118,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         record_video = False
         stand_by = False
         observe_gait_commands = False
-        frequencies = 2
+        # frequencies = 2
+        frequencies = 0.2
 
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.5] # x,y,z [m]
@@ -329,8 +330,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         max_init_terrain_level = 5 # starting curriculum state
         terrain_length = 8.
         terrain_width = 8.
-        num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
-        num_cols = 20 # number of terrain cols (types)
+        # num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
+        # num_cols = 20 # number of terrain cols (types)
+        num_rows= 5 # number of terrain rows (levels)  # spreaded is benifitiall !
+        num_cols = 5 # number of terrain cols (types)
 
         terrain_dict = {"smooth slope": 0., 
                         "rough slope up": 0.,
