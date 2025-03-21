@@ -164,9 +164,9 @@ class ManipLoco(LeggedRobot):
 
         if (self.viewer and self.enable_viewer_sync and self.debug_viz) or self.record_video:
             self.gym.clear_lines(self.viewer)
-            self._draw_ee_goal_curr()
-            self._draw_ee_goal_traj()
-            self._draw_collision_bbox()
+            # self._draw_ee_goal_curr()
+            # self._draw_ee_goal_traj()
+            # self._draw_collision_bbox()
 
     def compute_reward(self):
         """ Compute rewards

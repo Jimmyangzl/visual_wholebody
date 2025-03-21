@@ -119,8 +119,8 @@ class B1Z1RoughCfg( LeggedRobotCfg ):
         record_video = False
         stand_by = False
         observe_gait_commands = False
-        # frequencies = 2
-        frequencies = 0.2
+        frequencies = 2
+        # frequencies = 0.2
 
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.5] # x,y,z [m]
