@@ -232,6 +232,7 @@ class ManipLoco(LeggedRobot):
                                     ee_goal_local_cart,  # dim 3 position
                                     0*self.curr_ee_goal_sphere  # dim 3 orientation
                                     ),dim=-1)
+        # print(self.commands[0, :3])
         if self.cfg.env.observe_gait_commands:
             obs_buf = torch.cat((obs_buf,
                                       self.gait_indices.unsqueeze(1), self.clock_inputs), dim=-1)

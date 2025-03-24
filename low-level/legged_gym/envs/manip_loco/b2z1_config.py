@@ -79,15 +79,17 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         num_commands = 3
         resampling_time = 3. # time before command are changed[s]
 
-        lin_vel_x_schedule = [0, 0.5]
+        # lin_vel_x_schedule = [0, 0.5]
+        lin_vel_x_schedule = [0, 2.0]
         ang_vel_yaw_schedule = [0, 1]
         tracking_ang_vel_yaw_schedule = [0, 1]
 
-        ang_vel_yaw_clip = 0.5
-        lin_vel_x_clip = 0.2
+        ang_vel_yaw_clip = 0.05
+        lin_vel_x_clip = 0.02
 
         class ranges:
-            lin_vel_x = [-0.8, 0.8] # min max [m/s]
+            # lin_vel_x = [-0.8, 0.8] # min max [m/s]
+            lin_vel_x = [-2.0, 2.0] # min max [m/s]
             ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s]
 
     class normalization:
@@ -238,10 +240,13 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             feet_height = 1.0
 
             # -------Tracking rewards ----------
-            tracking_lin_vel_max = 2.0 
+            # tracking_lin_vel_max = 2.0
+            tracking_lin_vel_max = 20.0 
             tracking_lin_vel_x_l1 = 0.
-            tracking_lin_vel_x_exp = 0
-            tracking_ang_vel = 0.5
+            # tracking_lin_vel_x_exp = 0
+            tracking_lin_vel_x_exp = 10.0
+            # tracking_ang_vel = 0.5
+            tracking_ang_vel = 5.0
 
             delta_torques = -1.0e-7/4.0
             work = 0

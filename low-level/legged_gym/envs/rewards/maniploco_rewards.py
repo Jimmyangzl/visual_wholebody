@@ -300,6 +300,7 @@ class ManipLoco_rewards:
                           torch.minimum(-self.env.base_lin_vel[:, 0], -self.env.commands[:, 0]) / (-self.env.commands[:, 0] + 1e-5))
         zero_cmd_indices = torch.abs(self.env.commands[:, 0]) < self.env.cfg.commands.lin_vel_x_clip
         rew[zero_cmd_indices] = torch.exp(-torch.abs(self.env.base_lin_vel[:, 0]))[zero_cmd_indices]
+        # print(rew[0])
         return rew, rew
     
     def _reward_penalty_lin_vel_y(self):
