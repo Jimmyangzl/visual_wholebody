@@ -1,10 +1,10 @@
 env:
-  numEnvs: 100
+  numEnvs: 512
   numAgents: 1
   envSpacing: 5.0
   enableDebugVis: False
   isFlagrun: False
-  maxEpisodeLength: 150 #200
+  maxEpisodeLength: 100 #200
   pdControl: True
   powerScale: 1.0
   controlFrequencyInv: 4
@@ -18,7 +18,7 @@ env:
   lastCommands: False
 
   # low_policy_path: "/data/mhliu/visual_wholebody/high-level/data/low_policy/publiccheckrollrew_42000.pt" # "data/low_policy/jan17-frontfeet_terrainflat_linrew2_freq2_gaitstopzero_penelizeang_roll_fixbug_35600.pt"
-  low_policy_path: "/home/jimmyyang/unitree_simulation/visual_wholebody/low-level/logs/b2z1-low/env_num_1000_gait/model_45000.pt"
+  low_policy_path: "/home/ubuntu/unitree_loco/unitree_sim/visual_wholebody/low-level/logs/b2z1-low/env_num_1000_gait/model_52000.pt"
   asset:
     assetRoot: "data/asset"
     assetFileRobot: "b2z1-col/urdf/b2z1.urdf"
@@ -221,7 +221,7 @@ sim:
     bounce_threshold_velocity: 0.2
     max_depenetration_velocity: 50.0
     default_buffer_size_multiplier: 100.0
-    max_gpu_contact_pairs: 1000000 #284032
+    max_gpu_contact_pairs: 2000000 #284032
 
 reward:
   base_height_target: 0.55
