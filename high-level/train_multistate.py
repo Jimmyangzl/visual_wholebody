@@ -143,7 +143,7 @@ def get_trainer(is_eval=False):
         
     if args.eval:
         cfg['env']['numEnvs'] = 34
-        cfg["env"]["maxEpisodeLength"] = 1500
+        cfg["env"]["maxEpisodeLength"] = 150
         if args.checkpoint:
             checkpoint_steps = int(args.checkpoint.split("_")[-1].split(".")[0])
             cfg["env"]["globalStepCounter"] = checkpoint_steps
