@@ -123,7 +123,7 @@ class B2Z1PickMulti(B1Z1Base):
         self.table_heights = torch.zeros(self.num_envs, device=self.device, dtype=torch.float)
         # table
         self.table_dimz = 0.25
-        self.table_dims = gymapi.Vec3(0.6, 1.0, self.table_dimz)
+        self.table_dims = gymapi.Vec3(0.4, 1.0, self.table_dimz) # 0.6
         table_options = gymapi.AssetOptions()
         table_options.fix_base_link = True
         self.table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
@@ -327,7 +327,7 @@ class B2Z1PickMulti(B1Z1Base):
             dof_pos = self._dof_pos
             dof_vel = self._dof_vel
             commands = self.commands
-            table_dim = torch.tensor([0.6, 1.0, self.table_dimz]).repeat(self.num_envs, 1).to(self.device)
+            table_dim = torch.tensor([0.4, 1.0, self.table_dimz]).repeat(self.num_envs, 1).to(self.device) # 0.6
             base_quat_yaw = self.base_yaw_quat
             spherical_center = self.get_ee_goal_spherical_center()
             ee_goal_cart = self.curr_ee_goal_cart
@@ -343,7 +343,7 @@ class B2Z1PickMulti(B1Z1Base):
             dof_pos = self._dof_pos[env_ids]
             dof_vel = self._dof_vel[env_ids]
             commands = self.commands[env_ids]
-            table_dim = torch.tensor([0.6, 1.0, self.table_dimz]).repeat(len(env_ids), 1).to(self.device)
+            table_dim = torch.tensor([0.4, 1.0, self.table_dimz]).repeat(len(env_ids), 1).to(self.device) # 0.6
             base_quat_yaw = self.base_yaw_quat[env_ids]
             spherical_center = self.get_ee_goal_spherical_center()[env_ids]
             ee_goal_cart = self.curr_ee_goal_cart[env_ids]
@@ -368,7 +368,8 @@ class B2Z1PickMulti(B1Z1Base):
         pred_dim = 1 if self.pred_success else 0
         if self.near_goal_stop:
             self.extras["replaced_action"] = torch.clone(actions)
-            self.extras["replaced_action"][self.base_obj_dis < 0.6, -(cmd_dim+pred_dim):-pred_dim] = 0.0 # enforced these cmd to be 0
+            # 0.6
+            self.extras["replaced_action"][self.base_obj_dis < 0.3, -(cmd_dim+pred_dim):-pred_dim] = 0.0 # enforced these cmd to be 0
             # if not self.enable_camera:
             actions = self.extras["replaced_action"]
         
