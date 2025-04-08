@@ -195,11 +195,12 @@ class Trainer:
             self.agents.post_interaction(timestep=timestep, timesteps=self.timesteps)
 
             # reset environments
-            if terminated.any() or truncated.any():
-                with torch.no_grad():
+            with torch.no_grad():
+                if terminated.any() or truncated.any():
                     states, infos = self.env.reset()
-            else:
-                states = next_states
+                else:
+                    print("*************************** next *************************8")
+                    states = next_states
 
     def single_agent_eval(self) -> None:
         """Evaluate agent
