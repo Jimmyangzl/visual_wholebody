@@ -4,7 +4,7 @@ env:
   envSpacing: 5.0
   enableDebugVis: False
   isFlagrun: False
-  maxEpisodeLength: 100 #200
+  maxEpisodeLength: 150 #200
   pdControl: True
   powerScale: 1.0
   controlFrequencyInv: 4
