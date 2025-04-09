@@ -164,9 +164,9 @@ class ManipLoco(LeggedRobot):
 
         if (self.viewer and self.enable_viewer_sync and self.debug_viz) or self.record_video:
             self.gym.clear_lines(self.viewer)
-            # self._draw_ee_goal_curr()
-            # self._draw_ee_goal_traj()
-            # self._draw_collision_bbox()
+            self._draw_ee_goal_curr()
+            self._draw_ee_goal_traj()
+            self._draw_collision_bbox()
 
     def compute_reward(self):
         """ Compute rewards
@@ -514,7 +514,17 @@ class ManipLoco(LeggedRobot):
         
         self.gripper_idx = self.body_names_to_idx[self.cfg.asset.gripper_name]
 
-        # box
+        # table
+        self.table_dimz = 0.5
+        self.table_dims = gymapi.Vec3(0.6, 1.0, self.table_dimz)
+        table_options = gymapi.AssetOptions()
+        table_options.fix_base_link = True
+        self.table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
+        table_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(self.table_asset)
+        table_rigid_shape_props[0].friction = 0.5
+        self.gym.set_asset_rigid_shape_properties(self.table_asset, table_rigid_shape_props)
+
+        # # box
         asset_options = gymapi.AssetOptions()
         asset_options.density = 1000
         asset_options.fix_base_link = False
@@ -1284,6 +1294,31 @@ class ManipLoco(LeggedRobot):
             self.commands[resample_id, 2] = 0
 
         self._resample_ee_goal(resample_id)
+
+    # def _update_curr_ee_goal(self):
+    #     if not self.cfg.env.teleop_mode:
+    #         t = torch.clip(self.goal_timer / self.traj_timesteps, 0, 1)
+    #         self.curr_ee_goal_sphere[:] = torch.lerp(self.ee_start_sphere, self.ee_goal_sphere, t[:, None])
+    #     # TODO: for the teleop mode, we need to directly update self.curr_ee_goal_cart using VR controller.
+    #     # self.curr_ee_goal_cart[:] = sphere2cart(self.curr_ee_goal_sphere)
+    #     self.curr_ee_goal_cart[:] = torch.tensor([[-0.1, 0.6, -0.4]])
+    #     ee_goal_cart_yaw_global = quat_apply(self.base_yaw_quat, self.curr_ee_goal_cart)
+    #     self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + ee_goal_cart_yaw_global
+        
+    #     # TODO: for the teleop mode, we need to directly update self.ee_goal_orn_quat using VR controller.
+    #     default_yaw = torch.atan2(ee_goal_cart_yaw_global[:, 1], ee_goal_cart_yaw_global[:, 0])
+    #     default_pitch = -self.curr_ee_goal_sphere[:, 1] + self.cfg.goal_ee.arm_induced_pitch
+    #     self.ee_goal_orn_quat = quat_from_euler_xyz(self.ee_goal_orn_delta_rpy[:, 0] + np.pi / 2, default_pitch + self.ee_goal_orn_delta_rpy[:, 1], self.ee_goal_orn_delta_rpy[:, 2] + default_yaw)
+        
+    #     self.goal_timer += 1
+    #     resample_id = (self.goal_timer > self.traj_total_timesteps).nonzero(as_tuple=False).flatten()
+        
+    #     if len(resample_id) > 0 and self.stop_update_goal:
+    #         # set these env commands as 0
+    #         self.commands[resample_id, 0] = 0
+    #         self.commands[resample_id, 2] = 0
+
+    #     self._resample_ee_goal(resample_id)
     
     def _get_ee_goal_spherical_center(self):
         center = torch.cat([self.root_states[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
