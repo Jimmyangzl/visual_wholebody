@@ -44,7 +44,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         arm_induced_pitch = 0.38 # Added to -pos_p (negative goal pitch) to get default eef orn_p
 
         class sphere_center:
-            x_offset = 0.3 # Relative to base
+            # x_offset = 0.3 # Relative to base
+            x_offset = 0.2 # Relative to base
             y_offset = 0 # Relative to base
             z_invariant_offset = 0.7 # Relative to terrain
 
