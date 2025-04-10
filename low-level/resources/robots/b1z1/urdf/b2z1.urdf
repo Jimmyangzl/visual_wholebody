@@ -54,7 +54,7 @@
         </geometry>
     </collision>
   </link>
-  <joint
+  <!-- <joint
     name="joint_lidar"
     type="fixed">
     <origin
@@ -89,11 +89,9 @@
         rpy="0 0 0" />
       <geometry>
         <cylinder length="0.16" radius="0.076" />
-        <!-- <mesh
-          filename="package://b2/meshes/lidar_link.STL" /> -->
       </geometry>
     </collision>
-  </link>
+  </link> -->
   <joint
     name="f_dc_joint"
     type="fixed">
