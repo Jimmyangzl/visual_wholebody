@@ -515,21 +515,23 @@ class ManipLoco(LeggedRobot):
         self.gripper_idx = self.body_names_to_idx[self.cfg.asset.gripper_name]
 
         # table
-        self.table_dimz = 0.5
+        self.table_dimz = 1.7
         self.table_dims = gymapi.Vec3(0.6, 1.0, self.table_dimz)
         table_options = gymapi.AssetOptions()
         table_options.fix_base_link = True
-        self.table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
-        table_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(self.table_asset)
+        table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
+        table_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(table_asset)
         table_rigid_shape_props[0].friction = 0.5
-        self.gym.set_asset_rigid_shape_properties(self.table_asset, table_rigid_shape_props)
+        self.gym.set_asset_rigid_shape_properties(table_asset, table_rigid_shape_props)
 
-        # # box
+        # box
         asset_options = gymapi.AssetOptions()
         asset_options.density = 1000
         asset_options.fix_base_link = False
         asset_options.disable_gravity = False
         box_asset = self.gym.create_box(self.sim, self.cfg.box.box_size, self.cfg.box.box_size, self.cfg.box.box_size, asset_options)
+
+
 
         print('------------------------------------------------------')
         print('num_actions: {}'.format(self.num_actions))
@@ -552,6 +554,7 @@ class ManipLoco(LeggedRobot):
         env_upper = gymapi.Vec3(0., 0., 0.)
         self.actor_handles = []
         self.box_actor_handles = []
+        self.table_actor_handles = []
         box_body_indices = []
         self.envs = []
         self.mass_params_tensor = torch.zeros(self.num_envs, 5, dtype=torch.float, device=self.device, requires_grad=False)
@@ -560,7 +563,7 @@ class ManipLoco(LeggedRobot):
             env_handle = self.gym.create_env(self.sim, env_lower, env_upper, int(np.sqrt(self.num_envs)))
             self.envs.append(env_handle)
 
-            # widowGo1 
+            # robot 
             pos = self.env_origins[i].clone()
             pos[:2] += torch_rand_float(-self.cfg.init_state.origin_perturb_range, self.cfg.init_state.origin_perturb_range, (2,1), device=self.device).squeeze(1)
             rand_yaw_quat = gymapi.Quat.from_euler_zyx(0., 0., self.cfg.init_state.rand_yaw_range*np.random.uniform(-1, 1))
@@ -582,10 +585,10 @@ class ManipLoco(LeggedRobot):
 
             # box
             box_pos = pos.clone()
-            box_pos[0] += 2
+            box_pos[0] += 4
             box_pos[2] += self.cfg.box.box_env_origins_z
             box_start_pose.p = gymapi.Vec3(*box_pos)
-            box_handle = self.gym.create_actor(env_handle, box_asset, box_start_pose, "box", i, self.cfg.asset.self_collisions, 0)
+            box_handle = self.gym.create_actor(env_handle, box_asset, box_start_pose, "box", i, self.cfg.asset.self_collisions, 1)
             self.box_actor_handles.append(box_handle)
 
             box_body_props = self.gym.get_actor_rigid_body_properties(env_handle, box_handle)
@@ -594,10 +597,22 @@ class ManipLoco(LeggedRobot):
 
             box_body_idx = self.gym.get_actor_rigid_body_index(env_handle, box_handle, 0, gymapi.DOMAIN_SIM)
             box_body_indices.append(box_body_idx)
+
+            # table
+            table_pos = pos.clone()
+            table_pos[0] += 1
+            table_pos[2] = 0
+            # self.table_heights[i] = table_pos[-1] + self.table_dims.z / 2
+            table_start_pose = gymapi.Transform()
+            table_start_pose.p = gymapi.Vec3(*table_pos)
+            table_start_pose.r = gymapi.Quat(0, 0, 0, 1)
+            table_handle = self.gym.create_actor(env_handle, table_asset, table_start_pose, "table", i, 0, 2)
+            self.table_actor_handles.append(table_handle)
         
         assert(np.all(np.array(self.actor_handles) == 0))
         assert(np.all(np.array(self.box_actor_handles) == 1))
-        assert(np.all(np.array(box_body_indices) % (self.num_bodies + 1) == self.num_bodies))
+        assert(np.all(np.array(self.table_actor_handles) == 2))
+        assert(np.all(np.array(box_body_indices) % (self.num_bodies + 2) == self.num_bodies))
         self.robot_actor_indices = torch.arange(0, 2 * self.num_envs, 2, device=self.device)
         self.box_actor_indices = torch.arange(1, 2 * self.num_envs, 2, device=self.device)
 
@@ -734,9 +749,10 @@ class ManipLoco(LeggedRobot):
 
         # create some wrapper tensors for different slices
         self.force_sensor_tensor = gymtorch.wrap_tensor(force_sensor_tensor).view(self.num_envs, 4, 6)
-        self._root_states = gymtorch.wrap_tensor(actor_root_state).view(self.num_envs, 2, 13) # 2 actors
+        self._root_states = gymtorch.wrap_tensor(actor_root_state).view(self.num_envs, 3, 13) # 3 actors
         self.root_states = self._root_states[:, 0, :]
         self.box_root_state = self._root_states[:, 1, :]
+        self.table_root_state = self._root_states[:, 2, :]
         self.dof_state = gymtorch.wrap_tensor(dof_state_tensor)
         self.dof_pos = self.dof_state.view(self.num_envs, self.num_dofs, 2)[..., 0]
         self.dof_pos_wo_gripper = self.dof_pos[:, :-self.cfg.env.num_gripper_joints]
@@ -757,9 +773,10 @@ class ManipLoco(LeggedRobot):
         self.contact_forces = self._contact_forces[:, :-1, :]
         self.box_contact_force = self._contact_forces[:, -1, :]
 
-        self._rigid_body_state = gymtorch.wrap_tensor(rigid_body_state_tensor).view(self.num_envs, self.num_bodies + 1, 13)
-        self.rigid_body_state = self._rigid_body_state[:, :-1, :]
-        self.box_rigid_body_state = self._rigid_body_state[:, -1, :]
+        self._rigid_body_state = gymtorch.wrap_tensor(rigid_body_state_tensor).view(self.num_envs, self.num_bodies + 2, 13)
+        self.rigid_body_state = self._rigid_body_state[:, :-2, :]
+        self.box_rigid_body_state = self._rigid_body_state[:, -2, :]
+        self.table_rigid_body_state = self._rigid_body_state[:, -1, :]
 
         self.jacobian_whole = gymtorch.wrap_tensor(jacobian_tensor)
         self.foot_velocities = self.rigid_body_state.view(self.num_envs, self.num_bodies, 13)[:,
@@ -815,7 +832,8 @@ class ManipLoco(LeggedRobot):
                                                    self.cfg.goal_ee.sphere_center.z_invariant_offset], 
                                                    device=self.device).repeat(self.num_envs, 1)
         
-        self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + quat_apply(self.base_yaw_quat, self.curr_ee_goal_cart)
+        # self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + quat_apply(self.base_yaw_quat, self.curr_ee_goal_cart)
+        self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + self.curr_ee_goal_cart
 
         print('------------------------------------------------------')
         print(f'root_states shape: {self.root_states.shape}')
@@ -892,6 +910,16 @@ class ManipLoco(LeggedRobot):
         self.default_dof_pos_wo_gripper = self.default_dof_pos[:-self.cfg.env.num_gripper_joints]
         
         self.global_steps = 0
+
+        # initialize table tensors 
+        # self._table_root_states = self._root_states.view(self.num_envs, self.num_actors, self._actor_root_state.shape[-1])[..., 2, :]
+        # self._initial_table_root_states = self._table_root_states.clone()
+        # self._initial_table_root_states[:, 7:13] = 0.0
+        
+        # self._table_actor_ids = self.num_actors * torch.arange(self.num_envs, device=self.device, dtype=torch.int32) + 1
+        
+        # self.table_idx = self.gym.find_actor_rigid_body_index(self.envs[0], self.table_handles[0], "box", gymapi.DOMAIN_ENV)
+                
 
     def _reset_root_states(self, env_ids):
         """ Resets ROOT states position and velocities of selected environmments
@@ -1278,7 +1306,7 @@ class ManipLoco(LeggedRobot):
         # TODO: for the teleop mode, we need to directly update self.curr_ee_goal_cart using VR controller.
         self.curr_ee_goal_cart[:] = sphere2cart(self.curr_ee_goal_sphere)
         ee_goal_cart_yaw_global = quat_apply(self.base_yaw_quat, self.curr_ee_goal_cart)
-        self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + ee_goal_cart_yaw_global
+        self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + self.curr_ee_goal_cart[:]
         
         # TODO: for the teleop mode, we need to directly update self.ee_goal_orn_quat using VR controller.
         default_yaw = torch.atan2(ee_goal_cart_yaw_global[:, 1], ee_goal_cart_yaw_global[:, 0])
@@ -1321,8 +1349,11 @@ class ManipLoco(LeggedRobot):
     #     self._resample_ee_goal(resample_id)
     
     def _get_ee_goal_spherical_center(self):
-        center = torch.cat([self.root_states[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
-        center = center + quat_apply(self.base_yaw_quat, self.ee_goal_center_offset)
+        # center = torch.cat([self.root_states[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
+        center = torch.cat([self.table_root_state[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
+        center[:, 0] += -0.5
+        center[:, 2] += self.table_dimz
+        # center = center + quat_apply(self.base_yaw_quat, self.ee_goal_center_offset)
         return center
 
     def _get_walking_cmd_mask(self, env_ids=None, return_all=False):

@@ -50,12 +50,14 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             z_invariant_offset = 0.7 # Relative to terrain
 
         class ranges:
-            init_pos_start = [0.5, np.pi/8, 0]
-            init_pos_end = [0.7, 0, 0]
+            # init_pos_start = [0.5, np.pi/8, 0]
+            # init_pos_end = [0.7, 0, 0]
+            init_pos_start = [0.0, 0, 0]
+            init_pos_end = [0.1, 0, 0]
             # pos_l = [0.4, 0.95]
-            pos_l = [0.8, 1.3]
+            pos_l = [0.0, 0.2]
             # pos_p = [-1 * np.pi / 2.5, 1 * np.pi / 3]
-            pos_p = [np.pi / 3, np.pi / 2]
+            pos_p = [0, np.pi / 6]
             # pos_y = [-1.2, 1.2]
             pos_y = [-np.pi/36.0, np.pi/36.0]
             
@@ -108,7 +110,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 1
+        num_envs = 2000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -340,10 +342,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         max_init_terrain_level = 5 # starting curriculum state
         terrain_length = 8.
         terrain_width = 8.
-        # num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
-        # num_cols = 20 # number of terrain cols (types)
-        num_rows= 2 # number of terrain rows (levels)  # spreaded is benifitiall !
-        num_cols = 2 # number of terrain cols (types)
+        num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
+        num_cols = 10 # number of terrain cols (types)
+        # num_rows= 2 # number of terrain rows (levels)  # spreaded is benifitiall !
+        # num_cols = 2 # number of terrain cols (types)
 
         terrain_dict = {"smooth slope": 0., 
                         "rough slope up": 0.,
