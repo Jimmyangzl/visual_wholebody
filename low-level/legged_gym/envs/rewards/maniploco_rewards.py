@@ -116,6 +116,10 @@ class ManipLoco_rewards:
         foot_contacts_z = torch.square(self.env.force_sensor_tensor[:, :, 2]).sum(dim=-1)
         return foot_contacts_z, foot_contacts_z
 
+    def _reward_front_foot_contacts_z(self):
+        front_foot_contacts_z = torch.square(self.env.force_sensor_tensor[:, :2, 2]).sum(dim=-1)
+        return front_foot_contacts_z, front_foot_contacts_z
+
     def _reward_torques(self):
         # Penalize torques
         torque = torch.sum(torch.square(self.env.torques), dim=1)
@@ -300,7 +304,6 @@ class ManipLoco_rewards:
                           torch.minimum(-self.env.base_lin_vel[:, 0], -self.env.commands[:, 0]) / (-self.env.commands[:, 0] + 1e-5))
         zero_cmd_indices = torch.abs(self.env.commands[:, 0]) < self.env.cfg.commands.lin_vel_x_clip
         rew[zero_cmd_indices] = torch.exp(-torch.abs(self.env.base_lin_vel[:, 0]))[zero_cmd_indices]
-        # print(rew[0])
         return rew, rew
     
     def _reward_penalty_lin_vel_y(self):

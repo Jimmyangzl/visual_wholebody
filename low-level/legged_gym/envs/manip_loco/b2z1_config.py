@@ -45,9 +45,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
 
         class sphere_center:
             # x_offset = 0.3 # Relative to base
-            x_offset = 0.2 # Relative to base
+            # x_offset = 0.2 # Relative to base
+            x_offset = -0.2
             y_offset = 0 # Relative to base
-            z_invariant_offset = 0.7 # Relative to terrain
+            z_invariant_offset = 1.5 # Relative to terrain
 
         class ranges:
             # init_pos_start = [0.5, np.pi/8, 0]
@@ -110,7 +111,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 2000
+        num_envs = 10000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -127,7 +128,6 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         record_video = False
         stand_by = False
         observe_gait_commands = False
-        # frequencies = 2
         frequencies = 2
 
     class init_state( LeggedRobotCfg.init_state ):
@@ -243,8 +243,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             # -------Gait control rewards ---------
             tracking_contacts_shaped_force = -2.0 # Only works when `observing_gait_commands` is true
             tracking_contacts_shaped_vel = -2.0 # Only works when `observing_gait_commands` is true
-            feet_air_time = 2.0
-            feet_height = 1.0
+            # feet_air_time = 2.0
+            # feet_height = 1.0
+            feet_air_time = 0.0
+            feet_height = 0.0
 
             # -------Tracking rewards ----------
             # tracking_lin_vel_max = 2.0
@@ -259,13 +261,19 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             work = 0
             energy_square = 0.0
             torques = -2.5e-5 
-            stand_still = 1.0 
-            walking_dof = 1.5
+            # stand_still = 1.0
+            stand_still = 0.0 
+            # walking_dof = 1.5
+            walking_dof = 0.0
             dof_default_pos = 0.0
             dof_error = 0.0 
             alive = 1.0
-            lin_vel_z = -1.5
+            # lin_vel_z = -1.5
+            lin_vel_z = -0.1
             roll = -2
+
+            # Rear leg stand
+            front_foot_contacts_z = -5.0
 
             # common rewards
             ang_vel_xy = -0.2 
@@ -282,7 +290,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             orientation = 0.0
             orientation_walking = 0.0
             orientation_standing = 0.0
-            base_height = -5.0
+            # base_height = -5.0
+            base_height = 0.0
             torques_walking = 0.0
             torques_standing = 0.0
             energy_square = 0.0
@@ -295,7 +304,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         class arm_scales:
             arm_termination = None
             tracking_ee_sphere = 0.
-            tracking_ee_world = 0.8
+            # tracking_ee_world = 0.8
+            tracking_ee_world = 10.0
             tracking_ee_sphere_walking = 0.0
             tracking_ee_sphere_standing = 0.0
             tracking_ee_cart = None
@@ -342,10 +352,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         max_init_terrain_level = 5 # starting curriculum state
         terrain_length = 8.
         terrain_width = 8.
-        # num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
-        # num_cols = 10 # number of terrain cols (types)
-        num_rows= 5 # number of terrain rows (levels)  # spreaded is benifitiall !
-        num_cols = 5 # number of terrain cols (types)
+        num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
+        num_cols = 10 # number of terrain cols (types)
+        # num_rows= 5 # number of terrain rows (levels)  # spreaded is benifitiall !
+        # num_cols = 5 # number of terrain cols (types)
 
         terrain_dict = {"smooth slope": 0., 
                         "rough slope up": 0.,

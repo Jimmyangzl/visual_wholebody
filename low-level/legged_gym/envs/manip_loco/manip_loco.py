@@ -48,6 +48,8 @@ from .b2z1_config import B2Z1RoughCfg
 
 import sys
 
+CREATE_TABLE = False
+
 class ManipLoco(LeggedRobot):
     name = None
     # cfg: B1Z1RoughCfg
@@ -130,6 +132,8 @@ class ManipLoco(LeggedRobot):
         self.episode_length_buf += 1
         self.common_step_counter += 1
 
+
+
         # prepare quantities
         self.base_quat[:] = self.root_states[:, 3:7]
         self.base_lin_vel[:] = quat_rotate_inverse(self.base_quat, self.root_states[:, 7:10])
@@ -166,7 +170,7 @@ class ManipLoco(LeggedRobot):
             self.gym.clear_lines(self.viewer)
             self._draw_ee_goal_curr()
             self._draw_ee_goal_traj()
-            self._draw_collision_bbox()
+            # self._draw_collision_bbox()
 
     def compute_reward(self):
         """ Compute rewards
@@ -515,14 +519,15 @@ class ManipLoco(LeggedRobot):
         self.gripper_idx = self.body_names_to_idx[self.cfg.asset.gripper_name]
 
         # table
-        self.table_dimz = 1
-        self.table_dims = gymapi.Vec3(0.6, 1.0, self.table_dimz)
-        table_options = gymapi.AssetOptions()
-        table_options.fix_base_link = True
-        table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
-        table_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(table_asset)
-        table_rigid_shape_props[0].friction = 0.5
-        self.gym.set_asset_rigid_shape_properties(table_asset, table_rigid_shape_props)
+        if CREATE_TABLE:
+            self.table_dimz = 1
+            self.table_dims = gymapi.Vec3(0.6, 1.0, self.table_dimz)
+            table_options = gymapi.AssetOptions()
+            table_options.fix_base_link = True
+            table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
+            table_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(table_asset)
+            table_rigid_shape_props[0].friction = 0.5
+            self.gym.set_asset_rigid_shape_properties(table_asset, table_rigid_shape_props)
 
         # box
         # asset_options = gymapi.AssetOptions()
@@ -554,7 +559,8 @@ class ManipLoco(LeggedRobot):
         env_upper = gymapi.Vec3(0., 0., 0.)
         self.actor_handles = []
         # self.box_actor_handles = []
-        self.table_actor_handles = []
+        if CREATE_TABLE:
+            self.table_actor_handles = []
         # box_body_indices = []
         self.envs = []
         self.mass_params_tensor = torch.zeros(self.num_envs, 5, dtype=torch.float, device=self.device, requires_grad=False)
@@ -599,19 +605,21 @@ class ManipLoco(LeggedRobot):
             # box_body_indices.append(box_body_idx)
 
             # table
-            table_pos = pos.clone()
-            table_pos[0] += 1.5
-            table_pos[2] += 0.6
-            # self.table_heights[i] = table_pos[-1] + self.table_dims.z / 2
-            table_start_pose = gymapi.Transform()
-            table_start_pose.p = gymapi.Vec3(*table_pos)
-            table_start_pose.r = gymapi.Quat(0, 0, 0, 1)
-            table_handle = self.gym.create_actor(env_handle, table_asset, table_start_pose, "table", i, 0, 1)
-            self.table_actor_handles.append(table_handle)
+            if CREATE_TABLE:
+                table_pos = pos.clone()
+                table_pos[0] += 1.5
+                table_pos[2] += 0.6
+                # self.table_heights[i] = table_pos[-1] + self.table_dims.z / 2
+                table_start_pose = gymapi.Transform()
+                table_start_pose.p = gymapi.Vec3(*table_pos)
+                table_start_pose.r = gymapi.Quat(0, 0, 0, 1)
+                table_handle = self.gym.create_actor(env_handle, table_asset, table_start_pose, "table", i, 0, 1)
+                self.table_actor_handles.append(table_handle)
         
         assert(np.all(np.array(self.actor_handles) == 0))
         # assert(np.all(np.array(self.box_actor_handles) == 1))
-        assert(np.all(np.array(self.table_actor_handles) == 1))
+        if CREATE_TABLE:
+            assert(np.all(np.array(self.table_actor_handles) == 1))
         # assert(np.all(np.array(box_body_indices) % (self.num_bodies + 2) == self.num_bodies))
         self.robot_actor_indices = torch.arange(0, 2 * self.num_envs, 2, device=self.device)
         # self.box_actor_indices = torch.arange(1, 2 * self.num_envs, 2, device=self.device)
@@ -749,10 +757,14 @@ class ManipLoco(LeggedRobot):
 
         # create some wrapper tensors for different slices
         self.force_sensor_tensor = gymtorch.wrap_tensor(force_sensor_tensor).view(self.num_envs, 4, 6)
-        self._root_states = gymtorch.wrap_tensor(actor_root_state).view(self.num_envs, 2, 13) # 2 actors
+        if CREATE_TABLE:
+            self._root_states = gymtorch.wrap_tensor(actor_root_state).view(self.num_envs, 2, 13) # 2 actors
+        else:
+            self._root_states = gymtorch.wrap_tensor(actor_root_state).view(self.num_envs, 1, 13) # 1 actor
         self.root_states = self._root_states[:, 0, :]
         # self.box_root_state = self._root_states[:, 1, :]
-        self.table_root_state = self._root_states[:, 1, :]
+        if CREATE_TABLE:
+            self.table_root_state = self._root_states[:, 1, :]
         self.dof_state = gymtorch.wrap_tensor(dof_state_tensor)
         self.dof_pos = self.dof_state.view(self.num_envs, self.num_dofs, 2)[..., 0]
         self.dof_pos_wo_gripper = self.dof_pos[:, :-self.cfg.env.num_gripper_joints]
@@ -772,12 +784,14 @@ class ManipLoco(LeggedRobot):
         self._contact_forces = gymtorch.wrap_tensor(net_contact_forces).view(self.num_envs, -1, 3) # shape: num_envs, num_bodies, xyz axis
         self.contact_forces = self._contact_forces[:, :-1, :]
         # self.box_contact_force = self._contact_forces[:, -1, :]
-
-        self._rigid_body_state = gymtorch.wrap_tensor(rigid_body_state_tensor).view(self.num_envs, self.num_bodies + 1, 13)
-        self.rigid_body_state = self._rigid_body_state[:, :-1, :]
         # self.box_rigid_body_state = self._rigid_body_state[:, -2, :]
-        self.table_rigid_body_state = self._rigid_body_state[:, -1, :]
-
+        if CREATE_TABLE:
+            self._rigid_body_state = gymtorch.wrap_tensor(rigid_body_state_tensor).view(self.num_envs, self.num_bodies + 1, 13)
+            self.table_rigid_body_state = self._rigid_body_state[:, -1, :]
+            self.rigid_body_state = self._rigid_body_state[:, :-1, :]
+        else:
+            self._rigid_body_state = gymtorch.wrap_tensor(rigid_body_state_tensor).view(self.num_envs, self.num_bodies, 13)
+            self.rigid_body_state = self._rigid_body_state[:, :, :]
         self.jacobian_whole = gymtorch.wrap_tensor(jacobian_tensor)
         self.foot_velocities = self.rigid_body_state.view(self.num_envs, self.num_bodies, 13)[:,
                                self.feet_indices,
@@ -927,9 +941,10 @@ class ManipLoco(LeggedRobot):
         # self.box_root_state[env_ids, 0] = self.env_origins[env_ids, 0] + 2
         # self.box_root_state[env_ids, 1] = self.env_origins[env_ids, 1]
         # self.box_root_state[env_ids, 2] = self.env_origins[env_ids, 2] + self.cfg.box.box_env_origins_z
-        self.table_root_state[env_ids, 0] = self.env_origins[env_ids, 0] + 1.5
-        self.table_root_state[env_ids, 1] = self.env_origins[env_ids, 1]
-        self.table_root_state[env_ids, 2] = self.env_origins[env_ids, 2] + 0.6
+        if CREATE_TABLE:
+            self.table_root_state[env_ids, 0] = self.env_origins[env_ids, 0] + 1.5
+            self.table_root_state[env_ids, 1] = self.env_origins[env_ids, 1]
+            self.table_root_state[env_ids, 2] = self.env_origins[env_ids, 2] + 0.6
         # base orientation
         rand_yaw = self.cfg.init_state.rand_yaw_range*torch_rand_float(-1, 1, (len(env_ids), 1), device=self.device).squeeze(1)
         quat = quat_from_euler_xyz(0*rand_yaw, 0*rand_yaw, rand_yaw) 
@@ -1343,11 +1358,13 @@ class ManipLoco(LeggedRobot):
     #     self._resample_ee_goal(resample_id)
     
     def _get_ee_goal_spherical_center(self):
-        # center = torch.cat([self.root_states[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
-        center = torch.cat([self.table_root_state[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
-        center[:, 0] += -0.5
-        center[:, 2] += (self.table_dimz + 0.4)
-        # center = center + quat_apply(self.base_yaw_quat, self.ee_goal_center_offset)
+        if CREATE_TABLE:
+            center = torch.cat([self.table_root_state[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
+            center[:, 0] += -0.5
+            center[:, 2] += (self.table_dimz + 0.4)
+        else:
+            center = torch.cat([self.root_states[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
+            center = center + quat_apply(self.base_yaw_quat, self.ee_goal_center_offset)
         return center
 
     def _get_walking_cmd_mask(self, env_ids=None, return_all=False):
