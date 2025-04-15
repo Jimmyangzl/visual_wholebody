@@ -230,9 +230,6 @@ class ManipLoco(LeggedRobot):
         ee_goal_local_cart = quat_rotate_inverse(self.base_quat, self.curr_ee_goal_cart_world - arm_base_pos)
         left_foot_goal_local = quat_rotate_inverse(self.base_quat, self.left_foot_goal_pos_world - self.root_states[:, :3])
         right_foot_goal_local = quat_rotate_inverse(self.base_quat, self.right_foot_goal_pos_world - self.root_states[:, :3])
-        print("check local goal")
-        print(left_foot_goal_local)
-        print(right_foot_goal_local)
         if self.stand_by:
             self.commands[:] = 0.
 
