@@ -111,7 +111,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 1000
+        num_envs = 5000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -164,7 +164,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             'z1_jointGripper': -0.785,
         }
         # rand_yaw_range = np.pi/2
-        rand_yaw_range = np.pi/3
+        # rand_yaw_range = np.pi/3
+        rand_yaw_range = 0
         origin_perturb_range = 0.5
         init_vel_perturb_range = 0.1
 

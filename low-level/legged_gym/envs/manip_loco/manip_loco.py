@@ -228,6 +228,11 @@ class ManipLoco(LeggedRobot):
         """
         arm_base_pos = self.base_pos + quat_apply(self.base_yaw_quat, self.arm_base_offset)
         ee_goal_local_cart = quat_rotate_inverse(self.base_quat, self.curr_ee_goal_cart_world - arm_base_pos)
+        left_foot_goal_local = quat_rotate_inverse(self.base_quat, self.left_foot_goal_pos_world - self.root_states[:, :3])
+        right_foot_goal_local = quat_rotate_inverse(self.base_quat, self.right_foot_goal_pos_world - self.root_states[:, :3])
+        print("check local goal")
+        print(left_foot_goal_local)
+        print(right_foot_goal_local)
         if self.stand_by:
             self.commands[:] = 0.
 
@@ -237,9 +242,11 @@ class ManipLoco(LeggedRobot):
                                     self._reindex_all(self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
                                     self._reindex_all(self.action_history_buf[:, -1])[:, :12],  # dim 12
                                     self._reindex_feet(self.foot_contacts_from_sensor),  # dim 4
-                                    self.commands[:, :3] * self.commands_scale,  # dim 3
+                                    # self.commands[:, :3] * self.commands_scale,  # dim 3
+                                    left_foot_goal_local,
                                     # self.curr_ee_goal_sphere,  # dim 3 position
-                                    ee_goal_local_cart,  # dim 3 position
+                                    # ee_goal_local_cart,  # dim 3 position
+                                    right_foot_goal_local,
                                     0*self.curr_ee_goal_sphere  # dim 3 orientation
                                     ),dim=-1)
         # print(self.commands[0, :3])
