@@ -164,8 +164,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             'z1_jointGripper': -0.785,
         }
         # rand_yaw_range = np.pi/2
-        # rand_yaw_range = np.pi/3
-        rand_yaw_range = 0
+        rand_yaw_range = np.pi/3
+        # rand_yaw_range = 0
         origin_perturb_range = 0.5
         init_vel_perturb_range = 0.1
 
