@@ -111,7 +111,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 1
+        num_envs = 10000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -148,23 +148,16 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             'RR_hip_joint': -0.2,   # [rad]
             'RR_thigh_joint': 0.8,   # [rad]
             'RR_calf_joint': -1.5,    # [rad]
-            # 'z1_waist': 0.0,
-            # 'z1_shoulder': 1.48,
-            # 'z1_elbow': -0.63,
-            # 'z1_wrist_angle': -0.84,
-            # 'z1_forearm_roll': 0.0,
-            # 'z1_wrist_rotate': 1.57,#0.0,
-            # 'z1_jointGripper': -0.785,
+
             'z1_waist': 0.0,
-            'z1_shoulder': 0.1,
-            'z1_elbow': -0.1,
-            'z1_wrist_angle': -0.0,
+            'z1_shoulder': 1.48,
+            'z1_elbow': -0.63,
+            'z1_wrist_angle': -0.84,
             'z1_forearm_roll': 0.0,
             'z1_wrist_rotate': 1.57,#0.0,
             'z1_jointGripper': -0.785,
         }
-        # rand_yaw_range = np.pi/2
-        rand_yaw_range = np.pi/3
+        rand_yaw_range = np.pi/2
         origin_perturb_range = 0.5
         init_vel_perturb_range = 0.1
 
@@ -257,15 +250,12 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
 
             # -------Tracking rewards ----------
             # tracking_lin_vel_max = 2.0
-            # tracking_lin_vel_max = 20.0 
-            tracking_lin_vel_max = 0.0 
+            tracking_lin_vel_max = 20.0 
             tracking_lin_vel_x_l1 = 0.
             # tracking_lin_vel_x_exp = 0
-            # tracking_lin_vel_x_exp = 10.0
-            tracking_lin_vel_x_exp = 0
+            tracking_lin_vel_x_exp = 10.0
             # tracking_ang_vel = 0.5
-            # tracking_ang_vel = 5.0
-            tracking_ang_vel = 0.0
+            tracking_ang_vel = 5.0
 
             delta_torques = -1.0e-7/4.0
             work = 0
@@ -279,12 +269,11 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             dof_error = 0.0 
             alive = 1.0
             # lin_vel_z = -1.5
-            lin_vel_z = -0.0
+            lin_vel_z = -0.1
             roll = -2
 
             # Rear leg stand
-            # front_foot_contacts_z = -5.0
-            front_feet_goal = 10
+            front_foot_contacts_z = -5.0
 
             # common rewards
             ang_vel_xy = -0.2 
@@ -316,7 +305,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             arm_termination = None
             tracking_ee_sphere = 0.
             # tracking_ee_world = 0.8
-            tracking_ee_world = 0.0
+            tracking_ee_world = 10.0
             tracking_ee_sphere_walking = 0.0
             tracking_ee_sphere_standing = 0.0
             tracking_ee_cart = None
@@ -363,10 +352,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         max_init_terrain_level = 5 # starting curriculum state
         terrain_length = 8.
         terrain_width = 8.
-        # num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
-        # num_cols = 10 # number of terrain cols (types)
-        num_rows= 2 # number of terrain rows (levels)  # spreaded is benifitiall !
-        num_cols = 2 # number of terrain cols (types)
+        num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
+        num_cols = 10 # number of terrain cols (types)
+        # num_rows= 5 # number of terrain rows (levels)  # spreaded is benifitiall !
+        # num_cols = 5 # number of terrain cols (types)
 
         terrain_dict = {"smooth slope": 0., 
                         "rough slope up": 0.,
@@ -382,7 +371,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         terrain_proportions = list(terrain_dict.values())
         # trimesh only:
         slope_treshold = None # slopes above this threshold will be corrected to vertical surfaces
-        origin_zero_z = True
+        origin_zero_z = False
 
 
 class B2Z1RoughCfgPPO(LeggedRobotCfgPPO):
