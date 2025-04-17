@@ -142,6 +142,10 @@ class ManipLoco_rewards:
     def _reward_ang_vel_xy(self):
         rew = torch.sum(torch.square(self.env.base_ang_vel[:, :2]), dim=1)
         return rew, rew
+
+    def _reward_ang_vel_x(self):
+        rew = torch.sum(torch.square(self.env.base_ang_vel[:, :1]), dim=1)
+        return rew, rew
     
     def _reward_tracking_ang_vel(self):
         ang_vel_error = torch.square(self.env.commands[:, 2] - self.env.base_ang_vel[:, 2])
@@ -235,9 +239,15 @@ class ManipLoco_rewards:
         error = torch.abs(roll)
         return error, error
     
+    # def _reward_base_height(self):
+    #     # Penalize base height away from target
+    #     base_height = torch.mean(self.env.root_states[:, 2].unsqueeze(1), dim=1)
+    #     return torch.abs(base_height - self.env.cfg.rewards.base_height_target), base_height
+    
     def _reward_base_height(self):
-        # Penalize base height away from target
+        # Penalize low base height
         base_height = torch.mean(self.env.root_states[:, 2].unsqueeze(1), dim=1)
+        base_height = torch.clamp(base_height, max=self.env.cfg.rewards.base_height_target)
         return torch.abs(base_height - self.env.cfg.rewards.base_height_target), base_height
     
     def _reward_orientation_walking(self):

@@ -103,6 +103,7 @@ class ManipLoco(LeggedRobot):
             arm_pos_targets = self._control_ik(dpose) + self.dof_pos[:, -(6 + self.cfg.env.num_gripper_joints):-self.cfg.env.num_gripper_joints]
         all_pos_targets = torch.zeros_like(self.dof_pos)
         all_pos_targets[:, -(6 + self.cfg.env.num_gripper_joints):-self.cfg.env.num_gripper_joints] = arm_pos_targets
+        # self.gym.prepare_sim(self.sim)
         for t in range(self.cfg.control.decimation):
             self.torques = self._compute_torques(self.actions)
             self.gym.set_dof_position_target_tensor(self.sim, gymtorch.unwrap_tensor(all_pos_targets))
@@ -302,6 +303,7 @@ class ManipLoco(LeggedRobot):
         self._create_trimesh()
         # self._create_ground_plane()
         self._create_envs()
+        
         
     def reset_idx(self, env_ids, start=False):
         """ Reset some environments.
@@ -536,7 +538,8 @@ class ManipLoco(LeggedRobot):
             table_options.fix_base_link = True
             table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
             table_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(table_asset)
-            table_rigid_shape_props[0].friction = 0.5
+            table_rigid_shape_props[0].friction = 1.0
+            table_rigid_shape_props[0].restitution = 0.0
             self.gym.set_asset_rigid_shape_properties(table_asset, table_rigid_shape_props)
 
         # box
@@ -951,10 +954,14 @@ class ManipLoco(LeggedRobot):
         # self.box_root_state[env_ids, 0] = self.env_origins[env_ids, 0] + 2
         # self.box_root_state[env_ids, 1] = self.env_origins[env_ids, 1]
         # self.box_root_state[env_ids, 2] = self.env_origins[env_ids, 2] + self.cfg.box.box_env_origins_z
+        # if CREATE_TABLE:
+        #     self.table_root_state[env_ids, 0] = self.env_origins[env_ids, 0] + 1.5
+        #     self.table_root_state[env_ids, 1] = self.env_origins[env_ids, 1]
+        #     self.table_root_state[env_ids, 2] = self.env_origins[env_ids, 2] + 0.6
         if CREATE_TABLE:
-            self.table_root_state[env_ids, 0] = self.env_origins[env_ids, 0] + 1.5
-            self.table_root_state[env_ids, 1] = self.env_origins[env_ids, 1]
-            self.table_root_state[env_ids, 2] = self.env_origins[env_ids, 2] + 0.6
+            self.table_root_state[env_ids, 0] = self.table_root_state[env_ids, 0]
+            self.table_root_state[env_ids, 1] = self.table_root_state[env_ids, 1]
+            self.table_root_state[env_ids, 2] = self.table_root_state[env_ids, 2]
             
         # base orientation
         rand_yaw = self.cfg.init_state.rand_yaw_range*torch_rand_float(-1, 1, (len(env_ids), 1), device=self.device).squeeze(1)

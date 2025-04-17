@@ -111,7 +111,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 5000
+        num_envs = 2000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -164,10 +164,12 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             'z1_jointGripper': -0.785,
         }
         # rand_yaw_range = np.pi/2
-        rand_yaw_range = np.pi/3
+        rand_yaw_range = 0
         # rand_yaw_range = 0
-        origin_perturb_range = 0.5
-        init_vel_perturb_range = 0.1
+        # origin_perturb_range = 0.5
+        # init_vel_perturb_range = 0.1
+        origin_perturb_range = 0.0
+        init_vel_perturb_range = 0.0
 
     class control:
         stiffness = {'joint': 80, 'z1': 5}  # [N*m/rad] # Kp: 80, 150, 200
@@ -231,11 +233,11 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         only_positive_rewards = False # if true negative total rewards are clipped at zero (avoids early termination problems)
         tracking_sigma = 0.2  # tracking reward = exp(-error^2/sigma)
         tracking_ee_sigma = 1
-        soft_dof_pos_limit = 1.  # percentage of urdf limits, values above this limit are penalized
-        soft_dof_vel_limit = 1.
+        soft_dof_pos_limit = 0.95  # percentage of urdf limits, values above this limit are penalized
+        soft_dof_vel_limit = 0.95
         soft_torque_limit = 0.4
         base_height_target = 0.55
-        max_contact_force = 40.  # forces above this value are penalized
+        max_contact_force = 200.  # forces above this value are penalized
         # -------Gait control Para. ---------
         gait_vel_sigma = 0.5
         gait_force_sigma = 0.5
@@ -271,7 +273,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             delta_torques = -1.0e-7/4.0
             work = 0
             energy_square = 0.0
-            torques = -2.5e-5 
+            torques = -2.5e-7 
             # stand_still = 1.0
             stand_still = 0.0 
             # walking_dof = 1.5
@@ -285,11 +287,14 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
 
             # Rear leg stand
             # front_foot_contacts_z = -5.0
-            front_feet_goal = 10
+            front_feet_goal = 100
 
             # common rewards
-            ang_vel_xy = -0.2 
-            dof_acc = -7.5e-7 
+            # ang_vel_xy = -0.2
+            ang_vel_xy = -0.0
+            ang_vel_x = -0.5
+            # dof_acc = -7.5e-7 
+            dof_acc = -7.5e-5
             collision = -10.
             action_rate = -0.015
             dof_pos_limits = -10.0
@@ -298,12 +303,13 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             work = -0.003
             feet_jerk = -0.0002
             feet_drag = -0.08
-            feet_contact_forces = -0.001
+            # feet_contact_forces = -0.001
+            feet_contact_forces = 0.0
             orientation = 0.0
             orientation_walking = 0.0
             orientation_standing = 0.0
             # base_height = -5.0
-            base_height = 0.0
+            base_height = -2.0
             torques_walking = 0.0
             torques_standing = 0.0
             energy_square = 0.0
@@ -364,10 +370,11 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         max_init_terrain_level = 5 # starting curriculum state
         terrain_length = 8.
         terrain_width = 8.
-        num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
-        num_cols = 10 # number of terrain cols (types)
-        # num_rows= 2 # number of terrain rows (levels)  # spreaded is benifitiall !
-        # num_cols = 2 # number of terrain cols (types)
+        # num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
+        # num_cols = 10 # number of terrain cols (types)
+        num_rows= 5 # number of terrain rows (levels)  # spreaded is benifitiall !
+        num_cols = 5 # number of terrain cols (types)
+        
 
         terrain_dict = {"smooth slope": 0., 
                         "rough slope up": 0.,
