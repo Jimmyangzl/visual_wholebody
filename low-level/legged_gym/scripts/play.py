@@ -47,10 +47,10 @@ def play(args):
     log_pth = LEGGED_GYM_ROOT_DIR + "/logs/{}/".format(args.proj_name) + args.exptid
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
-    env_cfg.env.num_envs = 1
+    env_cfg.env.num_envs = 9
     # env_cfg.commands.ranges.lin_vel_x = [-1, 1]
 
-    env_cfg.terrain.num_rows = 6
+    env_cfg.terrain.num_rows = 3
     env_cfg.terrain.num_cols = 3
     # env_cfg.env.episode_length_s = 10000
     env_cfg.domain_rand.push_robots = False

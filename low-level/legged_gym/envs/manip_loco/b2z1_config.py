@@ -111,7 +111,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 2000
+        num_envs = 1000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -283,22 +283,23 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             alive = 1.0
             # lin_vel_z = -1.5
             lin_vel_z = -0.0
-            roll = -2
+            roll = -5
 
             # Rear leg stand
             # front_foot_contacts_z = -5.0
-            front_feet_goal = 100
+            front_feet_goal = 1000
 
             # common rewards
             # ang_vel_xy = -0.2
-            ang_vel_xy = -0.0
-            ang_vel_x = -0.5
-            # dof_acc = -7.5e-7 
-            dof_acc = -7.5e-5
+            ang_vel_xy = -0.2
+            ang_vel_x = -0.0
+            dof_acc = -7.5e-7 
+            # dof_acc = -7.5e-4
             collision = -10.
             action_rate = -0.015
             dof_pos_limits = -10.0
             delta_torques = -1.0e-7
+            # delta_torques = -1.0e-5
             hip_pos = -0.3
             work = -0.003
             feet_jerk = -0.0002
@@ -309,7 +310,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             orientation_walking = 0.0
             orientation_standing = 0.0
             # base_height = -5.0
-            base_height = -2.0
+            base_height = -1.0
             torques_walking = 0.0
             torques_standing = 0.0
             energy_square = 0.0
@@ -443,7 +444,7 @@ class B2Z1RoughCfgPPO(LeggedRobotCfgPPO):
         policy_class_name = 'ActorCritic'
         algorithm_class_name = 'PPO'
         num_steps_per_env = 24
-        max_iterations = 45000 # number of policy updates
+        max_iterations = 20000 # number of policy updates
         # logging
         save_interval = 200 # check for potential saves every this many iterations
         experiment_name = 'b2z1_v2'
