@@ -50,6 +50,7 @@ import sys
 
 CREATE_TABLE = True
 FIX_ARM = True
+FEET_ON_TABLE = True
 
 class ManipLoco(LeggedRobot):
     name = None
@@ -63,6 +64,7 @@ class ManipLoco(LeggedRobot):
             cfg.env.num_observations = cfg.env.num_proprio * (cfg.env.history_len+1) + cfg.env.num_priv
             self.num_obs = cfg.env.num_observations
         self.stand_by = cfg.env.stand_by
+        self.climb_flag = FEET_ON_TABLE
         super().__init__(cfg, *args, **kwargs)
 
     def step(self, actions):
@@ -158,7 +160,8 @@ class ManipLoco(LeggedRobot):
         self._post_physics_step_callback()
         
         # update ee goal
-        self._update_curr_ee_goal()
+        # if not FIX_ARM or self.climb_flag:
+        #     self._update_curr_ee_goal()
 
         # compute observations, rewards, resets, ...
         self.check_termination()
@@ -229,23 +232,34 @@ class ManipLoco(LeggedRobot):
         """
         arm_base_pos = self.base_pos + quat_apply(self.base_yaw_quat, self.arm_base_offset)
         ee_goal_local_cart = quat_rotate_inverse(self.base_quat, self.curr_ee_goal_cart_world - arm_base_pos)
-        left_foot_goal_local = quat_rotate_inverse(self.base_quat, self.left_foot_goal_pos_world - self.root_states[:, :3])
-        right_foot_goal_local = quat_rotate_inverse(self.base_quat, self.right_foot_goal_pos_world - self.root_states[:, :3])
         if self.stand_by:
             self.commands[:] = 0.
+        
+        if self.climb_flag:
+            left_foot_goal_local = quat_rotate_inverse(self.base_quat, self.left_foot_goal_pos_world - self.root_states[:, :3])
+            right_foot_goal_local = quat_rotate_inverse(self.base_quat, self.right_foot_goal_pos_world - self.root_states[:, :3])
+        else:
+            left_foot_goal_local = torch.zeros_like(self.root_states[:, :3])
+            right_foot_goal_local = torch.zeros_like(self.root_states[:, :3])
+            self.left_foot_goal_pos_world = None
+            self.right_foot_goal_pos_world = None
 
         obs_buf = torch.cat((       self._get_body_orientation(),  # dim 2
                                     self.base_ang_vel * self.obs_scales.ang_vel,  # dim 3
-                                    self._reindex_all((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
-                                    self._reindex_all(self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
-                                    self._reindex_all(self.action_history_buf[:, -1])[:, :12],  # dim 12
-                                    self._reindex_feet(self.foot_contacts_from_sensor),  # dim 4
-                                    # self.commands[:, :3] * self.commands_scale,  # dim 3
+                                    # self._reindex_all((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    # self._reindex_all(self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    # self._reindex_all(self.action_history_buf[:, -1])[:, :12],  # dim 12
+                                    ((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    (self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    (self.action_history_buf[:, -1])[:, :12],  # dim 12
+                                    # self._reindex_feet(self.foot_contacts_from_sensor),  # dim 4
+                                    self.foot_contacts_from_sensor,  # dim 4
+                                    self.commands[:, :3] * self.commands_scale,  # dim 3
                                     left_foot_goal_local,
                                     # self.curr_ee_goal_sphere,  # dim 3 position
                                     # ee_goal_local_cart,  # dim 3 position
                                     right_foot_goal_local,
-                                    0*self.curr_ee_goal_sphere  # dim 3 orientation
+                                    # 0*self.curr_ee_goal_sphere  # dim 3 orientation
                                     ),dim=-1)
         # print(self.commands[0, :3])
         if self.cfg.env.observe_gait_commands:
@@ -532,15 +546,20 @@ class ManipLoco(LeggedRobot):
 
         # table
         if CREATE_TABLE:
-            self.table_dimz = 1
-            self.table_dims = gymapi.Vec3(0.6, 1.0, self.table_dimz)
+            # Table to lean on
+            self.table_dims = gymapi.Vec3(self.cfg.table.table_dimx, self.cfg.table.table_dimy, self.cfg.table.table_dimz)
             table_options = gymapi.AssetOptions()
             table_options.fix_base_link = True
             table_asset = self.gym.create_box(self.sim, self.table_dims.x, self.table_dims.y, self.table_dims.z, table_options)
             table_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(table_asset)
-            table_rigid_shape_props[0].friction = 1.0
-            table_rigid_shape_props[0].restitution = 0.0
             self.gym.set_asset_rigid_shape_properties(table_asset, table_rigid_shape_props)
+            # Wall to lean on
+            self.wall_dims = gymapi.Vec3(self.cfg.table.wall_dimx, self.cfg.table.wall_dimy, self.cfg.table.wall_dimz)
+            wall_options = gymapi.AssetOptions()
+            wall_options.fix_base_link = True
+            wall_asset = self.gym.create_box(self.sim, self.wall_dims.x, self.wall_dims.y, self.wall_dims.z, wall_options)
+            wall_rigid_shape_props = self.gym.get_asset_rigid_shape_properties(wall_asset)
+            self.gym.set_asset_rigid_shape_properties(wall_asset, wall_rigid_shape_props)
 
         # box
         # asset_options = gymapi.AssetOptions()
@@ -618,16 +637,34 @@ class ManipLoco(LeggedRobot):
             # box_body_indices.append(box_body_idx)
 
             # table
-            if CREATE_TABLE:
+            if CREATE_TABLE and i<self.num_envs/2:
                 table_pos = pos.clone()
-                table_pos[0] += 1.5
-                table_pos[2] += 0.6
-                # self.table_heights[i] = table_pos[-1] + self.table_dims.z / 2
+                table_pos[0] += self.cfg.table.pos_x_from_origin
+                if self.cfg.table.randomize_height:
+                    height_range = self.cfg.table.table_height_range
+                    rand_height = np.random.uniform(height_range[0], height_range[1], size=(1, ))
+                    table_pos[2] += rand_height[0]
+                else:
+                    table_pos[2] += self.cfg.table.pos_z_from_origin
                 table_start_pose = gymapi.Transform()
                 table_start_pose.p = gymapi.Vec3(*table_pos)
                 table_start_pose.r = gymapi.Quat(0, 0, 0, 1)
+                table_shape_props = self._table_process_rigid_body_props(table_rigid_shape_props, i)
+                self.gym.set_asset_rigid_shape_properties(table_asset, table_shape_props)
                 table_handle = self.gym.create_actor(env_handle, table_asset, table_start_pose, "table", i, 0, 1)
                 self.table_actor_handles.append(table_handle)
+            if CREATE_TABLE and i>=self.num_envs/2:
+                wall_pos = pos.clone()
+                wall_pos[0] += self.cfg.table.pos_x_from_origin
+                wall_pos[2] += self.cfg.table.wall_dimz/2 + self.cfg.terrain.height[1]
+                wall_start_pose = gymapi.Transform()
+                wall_start_pose.p = gymapi.Vec3(*wall_pos)
+                wall_start_pose.r = gymapi.Quat(0, 0, 0, 1)
+                wall_shape_props = self._table_process_rigid_body_props(wall_rigid_shape_props, i)
+                self.gym.set_asset_rigid_shape_properties(wall_asset, wall_shape_props)
+                wall_handle = self.gym.create_actor(env_handle, wall_asset, wall_start_pose, "table", i, 0, 1)
+                self.table_actor_handles.append(wall_handle)
+        
         
         assert(np.all(np.array(self.actor_handles) == 0))
         # assert(np.all(np.array(self.box_actor_handles) == 1))
@@ -717,6 +754,19 @@ class ManipLoco(LeggedRobot):
             rand_mass = np.zeros(1)
         
         return props, rand_mass
+    
+    def _table_process_rigid_body_props(self, props, env_id):
+        if self.cfg.table.randomize_friction:
+            if env_id==0:
+                # prepare friction randomization
+                friction_range = self.cfg.table.friction_range
+                num_buckets = 1000
+                bucket_ids = torch.randint(0, num_buckets, (self.num_envs, 1))
+                friction_buckets = torch_rand_float(friction_range[0], friction_range[1], (num_buckets, 1), device='cpu')
+                self.friction_coeffs = friction_buckets[bucket_ids]
+            props[0].friction = self.friction_coeffs[env_id]
+            props[0].restitution = 0.0
+        return props
 
     def _process_rigid_shape_props(self, props, env_id):
         """ Callback allowing to store/change/randomize the rigid shape properties of each environment.
@@ -774,6 +824,8 @@ class ManipLoco(LeggedRobot):
             self._root_states = gymtorch.wrap_tensor(actor_root_state).view(self.num_envs, 2, 13) # 2 actors
             self.table_root_state = self._root_states[:, 1, :]
             # self.table_feet_target_point = torch.zeros_like()
+            # Get desired feet goal pos
+            self.left_foot_goal_pos_world, self.right_foot_goal_pos_world = self._get_feet_table_position()
         else:
             self._root_states = gymtorch.wrap_tensor(actor_root_state).view(self.num_envs, 1, 13) # 1 actor
         self.root_states = self._root_states[:, 0, :]
@@ -962,6 +1014,7 @@ class ManipLoco(LeggedRobot):
             self.table_root_state[env_ids, 0] = self.table_root_state[env_ids, 0]
             self.table_root_state[env_ids, 1] = self.table_root_state[env_ids, 1]
             self.table_root_state[env_ids, 2] = self.table_root_state[env_ids, 2]
+            self.left_foot_goal_pos_world, self.right_foot_goal_pos_world = self._get_feet_table_position()
             
         # base orientation
         rand_yaw = self.cfg.init_state.rand_yaw_range*torch_rand_float(-1, 1, (len(env_ids), 1), device=self.device).squeeze(1)
@@ -1392,24 +1445,40 @@ class ManipLoco(LeggedRobot):
         if CREATE_TABLE:
             center = torch.cat([self.table_root_state[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
             center[:, 0] += -0.5
-            center[:, 2] += (self.table_dimz + 0.4)
+            center[:, 2] += (self.cfg.table.table_dimz + 0.4)
         else:
             center = torch.cat([self.root_states[:, :2], torch.zeros(self.num_envs, 1, device=self.device)], dim=1)
             center = center + quat_apply(self.base_yaw_quat, self.ee_goal_center_offset)
         return center
     
     def _get_feet_table_position(self):
-        if CREATE_TABLE:
+        if self.climb_flag:
             center = self.table_root_state[:, :3].clone()
-            center[:, 2] += self.table_dimz/2
-            center[:, 0] += -0.25
+            center[:int(self.num_envs/2), 2] += self.cfg.table.table_dimz/2
+            center[:int(self.num_envs/2), 0] += -self.cfg.table.table_dimx/2 + self.cfg.table.depth_feet_pos
+            center[int(self.num_envs/2):, 2] = self.cfg.table.feet_wall_height
+            center[int(self.num_envs/2):, 0] += -self.cfg.table.wall_dimx/2
+            if self.cfg.table.randomize_feet_depth_pos:
+                depth_pos_range = self.cfg.table.feet_depth_pos_range
+                rand_depth = np.random.uniform(depth_pos_range[0], depth_pos_range[1], size=(1, ))
+                center[:int(self.num_envs/2), 0] += rand_depth[0]
+            if self.cfg.table.randomize_feet_wall_height:
+                feet_wall_height_range = self.cfg.table.feet_wall_height_range
+                rand_feet_wall_height = np.random.uniform(feet_wall_height_range[0], feet_wall_height_range[1], size=(1, ))
+                center[int(self.num_envs/2):, 0] += rand_feet_wall_height[0]
             left_foot_target_pos = center.clone()
             right_foot_target_pos = center.clone()
-            left_foot_target_pos[:, 1] += 0.22
-            right_foot_target_pos[:, 1] += -0.22
+            left_foot_target_pos[:, 1] += self.cfg.table.half_distance_feet_pos
+            right_foot_target_pos[:, 1] += -self.cfg.table.half_distance_feet_pos
+            if self.cfg.table.randomize_feet_distance:
+                feet_distance_range = self.cfg.table.feet_distance_range
+                rand_feet_distance = np.random.uniform(feet_distance_range[0], feet_distance_range[1], size=(2, ))
+                left_foot_target_pos[:, 1] += rand_feet_distance[0]
+                right_foot_target_pos[:, 1] += rand_feet_distance[1]
             return left_foot_target_pos, right_foot_target_pos
         else:
             return None
+    
 
     def _get_walking_cmd_mask(self, env_ids=None, return_all=False):
         if env_ids is None:

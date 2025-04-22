@@ -111,7 +111,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 1000
+        num_envs = 6
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -200,6 +200,31 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         box_env_origins_x = 0
         box_env_origins_y_range = [0.1, 0.3]
         box_env_origins_z = box_size / 2 + 0.16
+
+    class table:
+        table_dimz = 0.02
+        table_dimx = 0.6
+        table_dimy = 1.
+        pos_x_from_origin = 1.2
+        pos_y_from_origin = 0.
+        pos_z_from_origin = 0.5
+        randomize_friction = True
+        friction_range = [0.3, 3.0]
+        randomize_height = True
+        table_height_range = [0.3, 1.]
+        depth_feet_pos = 0.01 # The distance from the desired feet position to the edge of the table 
+        randomize_feet_depth_pos = True
+        feet_depth_pos_range = [0.01, 0.05] # The added distance to depth_feet_pos
+        half_distance_feet_pos = 0.22 # The distance between two desired feet position
+        randomize_feet_distance = True
+        feet_distance_range = [-0.05, 0.05]
+
+        wall_dimz = 2.0
+        wall_dimx = 0.6
+        wall_dimy = 1.
+        feet_wall_height = 0.7
+        randomize_feet_wall_height = True
+        feet_wall_height_range = [-0.2, 0.2]
     
     class arm:
         init_target_ee_base = [0.2, 0.0, 0.2]

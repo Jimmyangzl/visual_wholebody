@@ -222,11 +222,14 @@ class ManipLoco_rewards:
         return rew, rew
     
     def _reward_front_feet_goal(self):
-        feet_xyz = self.env.rigid_body_state[:, self.env.feet_indices, :3].clone()
-        left_foot_xyz_goal = self.env.left_foot_goal_pos_world
-        right_foot_xyz_goal = self.env.right_foot_goal_pos_world
-        error = torch.square(left_foot_xyz_goal - feet_xyz[:,0,:]).sum(dim=-1)+torch.square(right_foot_xyz_goal - feet_xyz[:,1,:]).sum(dim=-1)
-        return torch.exp(-2*error), error
+        if self.env.climb_flag:
+            feet_xyz = self.env.rigid_body_state[:, self.env.feet_indices, :3].clone()
+            left_foot_xyz_goal = self.env.left_foot_goal_pos_world
+            right_foot_xyz_goal = self.env.right_foot_goal_pos_world
+            error = torch.square(left_foot_xyz_goal - feet_xyz[:,0,:]).sum(dim=-1)+torch.square(right_foot_xyz_goal - feet_xyz[:,1,:]).sum(dim=-1)
+            return torch.exp(-2*error), error
+        else:
+            return 1.0, 0.0
     
     def _reward_orientation(self):
         # Penalize non flat base orientation
