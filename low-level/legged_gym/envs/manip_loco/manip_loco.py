@@ -48,8 +48,9 @@ from .b2z1_config import B2Z1RoughCfg
 
 import sys
 
-CREATE_TABLE = True
+CREATE_TABLE = False
 FIX_ARM = True
+FEET_ON_TABLE = False
 
 class ManipLoco(LeggedRobot):
     name = None
@@ -72,7 +73,7 @@ class ManipLoco(LeggedRobot):
             actions (torch.Tensor): Tensor of shape (num_envs, num_actions_per_env)
         """
         actions[:, 12:] = 0.
-        actions = self._reindex_all(actions)
+        # actions = self._reindex_all(actions)
         actions = torch.clip(actions, -self.clip_actions, self.clip_actions).to(self.device)
         # step physics and render each frame
         self.render()
@@ -158,7 +159,8 @@ class ManipLoco(LeggedRobot):
         self._post_physics_step_callback()
         
         # update ee goal
-        self._update_curr_ee_goal()
+        if not FIX_ARM or FEET_ON_TABLE:
+            self._update_curr_ee_goal()
 
         # compute observations, rewards, resets, ...
         self.check_termination()
@@ -176,7 +178,7 @@ class ManipLoco(LeggedRobot):
             self.gym.clear_lines(self.viewer)
             # self._draw_ee_goal_curr()
             # self._draw_ee_goal_traj()
-            self._draw_feet_target()
+            # self._draw_feet_target()
             # self._draw_collision_bbox()
 
     def compute_reward(self):
@@ -229,23 +231,32 @@ class ManipLoco(LeggedRobot):
         """
         arm_base_pos = self.base_pos + quat_apply(self.base_yaw_quat, self.arm_base_offset)
         ee_goal_local_cart = quat_rotate_inverse(self.base_quat, self.curr_ee_goal_cart_world - arm_base_pos)
-        left_foot_goal_local = quat_rotate_inverse(self.base_quat, self.left_foot_goal_pos_world - self.root_states[:, :3])
-        right_foot_goal_local = quat_rotate_inverse(self.base_quat, self.right_foot_goal_pos_world - self.root_states[:, :3])
+        
         if self.stand_by:
             self.commands[:] = 0.
+        if FEET_ON_TABLE:
+            left_foot_goal_local = quat_rotate_inverse(self.base_quat, self.left_foot_goal_pos_world - self.root_states[:, :3])
+            right_foot_goal_local = quat_rotate_inverse(self.base_quat, self.right_foot_goal_pos_world - self.root_states[:, :3])
+        else:
+            left_foot_goal_local = torch.zeros_like(self.root_states[:, :3])
+            right_foot_goal_local = torch.zeros_like(self.root_states[:, :3])
 
         obs_buf = torch.cat((       self._get_body_orientation(),  # dim 2
                                     self.base_ang_vel * self.obs_scales.ang_vel,  # dim 3
-                                    self._reindex_all((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
-                                    self._reindex_all(self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
-                                    self._reindex_all(self.action_history_buf[:, -1])[:, :12],  # dim 12
-                                    self._reindex_feet(self.foot_contacts_from_sensor),  # dim 4
-                                    # self.commands[:, :3] * self.commands_scale,  # dim 3
+                                    # self._reindex_all((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    # self._reindex_all(self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    # self._reindex_all(self.action_history_buf[:, -1])[:, :12],  # dim 12
+                                    ((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    (self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    (self.action_history_buf[:, -1])[:, :12],  # dim 12
+                                    # self._reindex_feet(self.foot_contacts_from_sensor),  # dim 4
+                                    self.foot_contacts_from_sensor,  # dim 4
+                                    self.commands[:, :3] * self.commands_scale,  # dim 3
                                     left_foot_goal_local,
                                     # self.curr_ee_goal_sphere,  # dim 3 position
                                     # ee_goal_local_cart,  # dim 3 position
                                     right_foot_goal_local,
-                                    0*self.curr_ee_goal_sphere  # dim 3 orientation
+                                    # 0*self.curr_ee_goal_sphere  # dim 3 orientation
                                     ),dim=-1)
         # print(self.commands[0, :3])
         if self.cfg.env.observe_gait_commands:
