@@ -1465,7 +1465,7 @@ class ManipLoco(LeggedRobot):
             if self.cfg.table.randomize_feet_wall_height:
                 feet_wall_height_range = self.cfg.table.feet_wall_height_range
                 rand_feet_wall_height = np.random.uniform(feet_wall_height_range[0], feet_wall_height_range[1], size=(1, ))
-                center[int(self.num_envs/2):, 0] += rand_feet_wall_height[0]
+                center[int(self.num_envs/2):, 2] += rand_feet_wall_height[0]
             left_foot_target_pos = center.clone()
             right_foot_target_pos = center.clone()
             left_foot_target_pos[:, 1] += self.cfg.table.half_distance_feet_pos
