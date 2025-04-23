@@ -165,7 +165,6 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         }
         rand_yaw_range = np.pi/2
         # rand_yaw_range = 0
-        # rand_yaw_range = 0
         origin_perturb_range = 0.5
         init_vel_perturb_range = 0.1
         # origin_perturb_range = 0.0
@@ -274,15 +273,15 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             work = 0
             energy_square = 0.0
             torques = -2.5e-7
-            # stand_still = 1.0
-            stand_still = 0.0 
+            stand_still = 1.0
+            # stand_still = 0.0 
             # walking_dof = 1.5
             walking_dof = 0.0
             dof_default_pos = 0.0
             dof_error = 0.0 
             alive = 1.0
-            # lin_vel_z = -1.5
-            lin_vel_z = -0.0
+            lin_vel_z = -1.5
+            # lin_vel_z = -0.0
             roll = -2
 
             # Rear leg stand
@@ -303,8 +302,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             work = -0.003
             feet_jerk = -0.0002
             feet_drag = -0.08
-            # feet_contact_forces = -0.001
-            feet_contact_forces = 0.0
+            feet_contact_forces = -0.001
+            # feet_contact_forces = 0.0
             orientation = 0.0
             orientation_walking = 0.0
             orientation_standing = 0.0
