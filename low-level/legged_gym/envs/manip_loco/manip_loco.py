@@ -179,7 +179,8 @@ class ManipLoco(LeggedRobot):
             self.gym.clear_lines(self.viewer)
             # self._draw_ee_goal_curr()
             # self._draw_ee_goal_traj()
-            self._draw_feet_target()
+            if FEET_ON_TABLE:
+                self._draw_feet_target()
             # self._draw_collision_bbox()
 
     def compute_reward(self):
@@ -1014,7 +1015,7 @@ class ManipLoco(LeggedRobot):
             self.table_root_state[env_ids, 0] = self.table_root_state[env_ids, 0]
             self.table_root_state[env_ids, 1] = self.table_root_state[env_ids, 1]
             self.table_root_state[env_ids, 2] = self.table_root_state[env_ids, 2]
-            self.left_foot_goal_pos_world, self.right_foot_goal_pos_world = self._get_feet_table_position()
+            # self.left_foot_goal_pos_world, self.right_foot_goal_pos_world = self._get_feet_table_position()
             
         # base orientation
         rand_yaw = self.cfg.init_state.rand_yaw_range*torch_rand_float(-1, 1, (len(env_ids), 1), device=self.device).squeeze(1)
@@ -1390,31 +1391,31 @@ class ManipLoco(LeggedRobot):
         return collision_mask | underground_mask
 
     def _update_curr_ee_goal(self):
-        # if not self.cfg.env.teleop_mode:
-        #     t = torch.clip(self.goal_timer / self.traj_timesteps, 0, 1)
-        #     self.curr_ee_goal_sphere[:] = torch.lerp(self.ee_start_sphere, self.ee_goal_sphere, t[:, None])
+        if not self.cfg.env.teleop_mode:
+            t = torch.clip(self.goal_timer / self.traj_timesteps, 0, 1)
+            self.curr_ee_goal_sphere[:] = torch.lerp(self.ee_start_sphere, self.ee_goal_sphere, t[:, None])
 
         # TODO: for the teleop mode, we need to directly update self.curr_ee_goal_cart using VR controller.
-        # self.curr_ee_goal_cart[:] = sphere2cart(self.curr_ee_goal_sphere)
-        # ee_goal_cart_yaw_global = quat_apply(self.base_yaw_quat, self.curr_ee_goal_cart)
-        # self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + self.curr_ee_goal_cart[:]
+        self.curr_ee_goal_cart[:] = sphere2cart(self.curr_ee_goal_sphere)
+        ee_goal_cart_yaw_global = quat_apply(self.base_yaw_quat, self.curr_ee_goal_cart)
+        self.curr_ee_goal_cart_world = self._get_ee_goal_spherical_center() + self.curr_ee_goal_cart[:]
 
-        self.left_foot_goal_pos_world, self.right_foot_goal_pos_world = self._get_feet_table_position()
+        # self.left_foot_goal_pos_world, self.right_foot_goal_pos_world = self._get_feet_table_position()
         
         # TODO: for the teleop mode, we need to directly update self.ee_goal_orn_quat using VR controller.
-        # default_yaw = torch.atan2(ee_goal_cart_yaw_global[:, 1], ee_goal_cart_yaw_global[:, 0])
-        # default_pitch = -self.curr_ee_goal_sphere[:, 1] + self.cfg.goal_ee.arm_induced_pitch
-        # self.ee_goal_orn_quat = quat_from_euler_xyz(self.ee_goal_orn_delta_rpy[:, 0] + np.pi / 2, default_pitch + self.ee_goal_orn_delta_rpy[:, 1], self.ee_goal_orn_delta_rpy[:, 2] + default_yaw)
+        default_yaw = torch.atan2(ee_goal_cart_yaw_global[:, 1], ee_goal_cart_yaw_global[:, 0])
+        default_pitch = -self.curr_ee_goal_sphere[:, 1] + self.cfg.goal_ee.arm_induced_pitch
+        self.ee_goal_orn_quat = quat_from_euler_xyz(self.ee_goal_orn_delta_rpy[:, 0] + np.pi / 2, default_pitch + self.ee_goal_orn_delta_rpy[:, 1], self.ee_goal_orn_delta_rpy[:, 2] + default_yaw)
         
-        # self.goal_timer += 1
-        # resample_id = (self.goal_timer > self.traj_total_timesteps).nonzero(as_tuple=False).flatten()
+        self.goal_timer += 1
+        resample_id = (self.goal_timer > self.traj_total_timesteps).nonzero(as_tuple=False).flatten()
         
-        # if len(resample_id) > 0 and self.stop_update_goal:
-        #     # set these env commands as 0
-        #     self.commands[resample_id, 0] = 0
-        #     self.commands[resample_id, 2] = 0
+        if len(resample_id) > 0 and self.stop_update_goal:
+            # set these env commands as 0
+            self.commands[resample_id, 0] = 0
+            self.commands[resample_id, 2] = 0
 
-        # self._resample_ee_goal(resample_id)
+        self._resample_ee_goal(resample_id)
 
     # def _update_curr_ee_goal(self):
     #     if not self.cfg.env.teleop_mode:
@@ -1478,6 +1479,9 @@ class ManipLoco(LeggedRobot):
             return left_foot_target_pos, right_foot_target_pos
         else:
             return None
+    
+    def _reset_feet_table_position(self, env_id):
+        pass
     
 
     def _get_walking_cmd_mask(self, env_ids=None, return_all=False):

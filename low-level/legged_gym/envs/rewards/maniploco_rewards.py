@@ -231,6 +231,19 @@ class ManipLoco_rewards:
         else:
             return 1.0, 0.0
     
+    def _reward_rear_feet_approach(self):
+        if self.env.climb_flag:
+            feet_xy = self.env.rigid_body_state[:, self.env.feet_indices, :2].clone()
+            left_foot_xy_goal = self.env.left_foot_goal_pos_world[:, :2]
+            right_foot_xy_goal = self.env.right_foot_goal_pos_world[:, :2]
+            base_xy = self.env.root_states[:, :2]
+            left_rear_foot_xy_goal = 2*base_xy - right_foot_xy_goal
+            right_rear_foot_xy_goal = 2*base_xy - left_foot_xy_goal
+            error = torch.square(left_rear_foot_xy_goal - feet_xy[:,2,:]).sum(dim=-1)+torch.square(right_rear_foot_xy_goal - feet_xy[:,3,:]).sum(dim=-1)
+            return torch.exp(-2*error), error
+        else:
+            return 1.0, 0.0
+    
     def _reward_orientation(self):
         # Penalize non flat base orientation
         error = torch.sum(torch.square(self.env.projected_gravity[:, :2]), dim=1)

@@ -111,7 +111,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 6
+        num_envs = 1000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -299,7 +299,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             work = 0
             energy_square = 0.0
             torques = -2.5e-7 
-            # stand_still = 1.0
+            # stand_still = 5.0
             stand_still = 0.0 
             # walking_dof = 1.5
             walking_dof = 0.0
@@ -312,12 +312,15 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
 
             # Rear leg stand
             # front_foot_contacts_z = -5.0
-            front_feet_goal = 1000
+            front_feet_goal = 100
+            rear_feet_approach = 0
+            # front_feet_goal = 0.
+            # rear_feet_approach = 0.
 
             # common rewards
             # ang_vel_xy = -0.2
             ang_vel_xy = -0.2
-            ang_vel_x = -0.0
+            ang_vel_x = -1.0
             dof_acc = -7.5e-7 
             # dof_acc = -7.5e-4
             collision = -10.
@@ -329,13 +332,13 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             work = -0.003
             feet_jerk = -0.0002
             feet_drag = -0.08
-            # feet_contact_forces = -0.001
-            feet_contact_forces = 0.0
+            feet_contact_forces = -0.001
+            # feet_contact_forces = 0.0
             orientation = 0.0
             orientation_walking = 0.0
             orientation_standing = 0.0
-            # base_height = -5.0
-            base_height = -1.0
+            base_height = -50.0
+            # base_height = -1.0
             torques_walking = 0.0
             torques_standing = 0.0
             energy_square = 0.0
@@ -374,7 +377,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         horizontal_scale = 0.05 # [m] influence computation time by a lot
         vertical_scale = 0.005 # [m]
         border_size = 25 # [m]
-        height = [0.00, 0.1] # [0.04, 0.1]
+        # height = [0.00, 0.1] # [0.04, 0.1]
+        height = [0.00, 0.00] # [0.04, 0.1]
         gap_size = [0.02, 0.1]
         stepping_stone_distance = [0.02, 0.08]
         downsampled_scale = 0.075
