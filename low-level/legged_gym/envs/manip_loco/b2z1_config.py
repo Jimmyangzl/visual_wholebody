@@ -83,7 +83,6 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         num_commands = 3
         resampling_time = 3. # time before command are changed[s]
 
-        # lin_vel_x_schedule = [0, 0.5]
         lin_vel_x_schedule = [0, 2.0]
         ang_vel_yaw_schedule = [0, 1]
         tracking_ang_vel_yaw_schedule = [0, 1]
@@ -92,9 +91,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         lin_vel_x_clip = 0.02
 
         class ranges:
-            # lin_vel_x = [-0.8, 0.8] # min max [m/s]
-            lin_vel_x = [-2.0, 2.0] # min max [m/s]
-            ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s]
+            lin_vel_x = [-0.5, 0.5] # min max [m/s]
+            ang_vel_yaw = [-0.3, 0.3]    # min max [rad/s]
+            # lin_vel_x = [-2.0, 2.0] # min max [m/s]
+            # ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s]
 
     class normalization:
         class obs_scales:
@@ -107,7 +107,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         clip_actions = 100.
 
     class env:
-        num_envs = 10000
+        num_envs = 1000
         num_actions = 12 + 6 #CAUTION
         num_torques = 12 + 6
         action_delay = 3  # -1 for no delay
@@ -245,8 +245,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
 
             # -------Tracking rewards ----------
             # tracking_lin_vel_max = 2.0
-            tracking_lin_vel_max = 20.0 
-            tracking_lin_vel_x_l1 = 0.
+            tracking_lin_vel_max = 10.0 
+            tracking_lin_vel_x_l1 = 10.
             # tracking_lin_vel_x_exp = 0
             tracking_lin_vel_x_exp = 10.0
             # tracking_ang_vel = 0.5
@@ -256,7 +256,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             work = 0
             energy_square = 0.0
             torques = -2.5e-5 
-            stand_still = 1.0 
+            stand_still = 10.0 
             walking_dof = 1.5
             dof_default_pos = 0.0
             dof_error = 0.0 
@@ -317,7 +317,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         horizontal_scale = 0.05 # [m] influence computation time by a lot
         vertical_scale = 0.005 # [m]
         border_size = 25 # [m]
-        height = [0.00, 0.1] # [0.04, 0.1]
+        height = [0.00, 0.005] # [0.04, 0.1]
         gap_size = [0.02, 0.1]
         stepping_stone_distance = [0.02, 0.08]
         downsampled_scale = 0.075
@@ -340,7 +340,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         terrain_length = 8.
         terrain_width = 8.
         num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
-        num_cols = 20 # number of terrain cols (types)
+        num_cols = 10 # number of terrain cols (types)
         # num_rows= 10 # number of terrain rows (levels)  # spreaded is benifitiall !
         # num_cols = 5 # number of terrain cols (types)
 

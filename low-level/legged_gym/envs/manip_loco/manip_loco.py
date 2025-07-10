@@ -69,7 +69,7 @@ class ManipLoco(LeggedRobot):
             actions (torch.Tensor): Tensor of shape (num_envs, num_actions_per_env)
         """
         actions[:, 12:] = 0.
-        actions = self._reindex_all(actions)
+        # actions = self._reindex_all(actions)
         actions = torch.clip(actions, -self.clip_actions, self.clip_actions).to(self.device)
         # step physics and render each frame
         self.render()
@@ -223,10 +223,14 @@ class ManipLoco(LeggedRobot):
 
         obs_buf = torch.cat((       self._get_body_orientation(),  # dim 2
                                     self.base_ang_vel * self.obs_scales.ang_vel,  # dim 3
-                                    self._reindex_all((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
-                                    self._reindex_all(self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
-                                    self._reindex_all(self.action_history_buf[:, -1])[:, :12],  # dim 12
-                                    self._reindex_feet(self.foot_contacts_from_sensor),  # dim 4
+                                    # self._reindex_all((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    # self._reindex_all(self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    # self._reindex_all(self.action_history_buf[:, -1])[:, :12],  # dim 12
+                                    ((self.dof_pos - self.default_dof_pos) * self.obs_scales.dof_pos)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    (self.dof_vel * self.obs_scales.dof_vel)[:, :-self.cfg.env.num_gripper_joints],  # dim 18
+                                    self.action_history_buf[:, -1][:, :12],  # dim 12
+                                    # self._reindex_feet(self.foot_contacts_from_sensor),  # dim 4
+                                    self.foot_contacts_from_sensor,
                                     self.commands[:, :3] * self.commands_scale,  # dim 3
                                     # self.curr_ee_goal_sphere,  # dim 3 position
                                     ee_goal_local_cart,  # dim 3 position
