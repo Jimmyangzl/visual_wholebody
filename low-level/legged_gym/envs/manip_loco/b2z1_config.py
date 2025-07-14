@@ -52,12 +52,12 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         class ranges:
             init_pos_start = [0.5, np.pi/8, 0]
             init_pos_end = [0.7, 0, 0]
-            # pos_l = [0.4, 0.95]
-            pos_l = [0.8, 1.3]
-            # pos_p = [-1 * np.pi / 2.5, 1 * np.pi / 3]
-            pos_p = [np.pi / 3, np.pi / 2]
-            # pos_y = [-1.2, 1.2]
-            pos_y = [-np.pi/36.0, np.pi/36.0]
+            pos_l = [0.4, 0.95]
+            # pos_l = [0.8, 1.3]
+            pos_p = [-1 * np.pi / 2.5, 1 * np.pi / 3]
+            # pos_p = [np.pi / 3, np.pi / 2]
+            pos_y = [-1.2, 1.2]
+            # pos_y = [-np.pi/36.0, np.pi/36.0]
             
             delta_orn_r = [-0.5, 0.5]
             delta_orn_p = [-0.5, 0.5]
@@ -91,10 +91,10 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         lin_vel_x_clip = 0.02
 
         class ranges:
-            lin_vel_x = [-0.5, 0.5] # min max [m/s]
-            ang_vel_yaw = [-0.3, 0.3]    # min max [rad/s]
-            # lin_vel_x = [-2.0, 2.0] # min max [m/s]
-            # ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s]
+            # lin_vel_x = [-0.5, 0.5] # min max [m/s]
+            # ang_vel_yaw = [-0.3, 0.3]    # min max [rad/s]
+            lin_vel_x = [-2.0, 2.0] # min max [m/s]
+            ang_vel_yaw = [-1.0, 1.0]    # min max [rad/s]
 
     class normalization:
         class obs_scales:
@@ -279,7 +279,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
             orientation = 0.0
             orientation_walking = 0.0
             orientation_standing = 0.0
-            base_height = -5.0
+            # base_height = -5.0
+            base_height = -20.0
             torques_walking = 0.0
             torques_standing = 0.0
             energy_square = 0.0
@@ -292,7 +293,8 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         class arm_scales:
             arm_termination = None
             tracking_ee_sphere = 0.
-            tracking_ee_world = 0.8
+            # tracking_ee_world = 0.8
+            tracking_ee_world = 5.0
             tracking_ee_sphere_walking = 0.0
             tracking_ee_sphere_standing = 0.0
             tracking_ee_cart = None
@@ -317,7 +319,7 @@ class B2Z1RoughCfg( LeggedRobotCfg ):
         horizontal_scale = 0.05 # [m] influence computation time by a lot
         vertical_scale = 0.005 # [m]
         border_size = 25 # [m]
-        height = [0.00, 0.005] # [0.04, 0.1]
+        height = [0.00, 0.05] # [0.04, 0.1]
         gap_size = [0.02, 0.1]
         stepping_stone_distance = [0.02, 0.08]
         downsampled_scale = 0.075
